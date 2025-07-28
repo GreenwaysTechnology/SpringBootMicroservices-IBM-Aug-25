@@ -1,0 +1,918 @@
+										Spring Framework
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+What is Spring framework?
+
+   Spring Framework is java framework which implements the most of the design patterns and principles for building enterprise java application.
+
+Types of application:
+...................................
+
+=>Desktop application
+   Desk apps built for standalone desktops eg ..notpad, word, excel
+
+=>Network based application
+   Apps runs in the remote machine and accessed that apps via network.
+
+ =>Client Server Arch
+	Application has three major layer(tier)
+    ->Data Layer -Where we store data
+    ->Biz layer - Where we process data
+    ->Presentation Layer - Where we present  data
+
+
+History of client and server:
+->Mainframe based arch : The first network based application
+
+->Layered Client server arch without mainframe works
+
+   ->Single/One tier client server - >Both storage and biz processing kept in single  machine,  where as ui layer is kept     separately.
+
+  ->Two/tier client server
+        Database/Storage layer is separated, biz processing layer is kept in one   machine, and ui also kept in the same machine.
+
+  ->Three tier client server 
+	Data layer , Biz processing layer, Ui layer is kept in different machines
+
+  ->N-tier client server 
+      Data Layer
+      Biz processing layer
+	->MOM Layer - Message oriented middleware -
+        ->Rpc layer - Remote Procedure call-app to app interaction.
+        ->Integration layer - ESB (Enterprise Service Bus)
+    Each layer can be kept in different and different machines , each layer can communicate over network using its own networking protocols
+
+
+How to build n-tier client server distributed  apps ?
+   You can build n-tier client server distributed applications in any technology like "java",".netnet",php,python,node.js,.....
+
+Distributed application types:
+....................................................
+Now a days distributed apps are built using various patterns.
+
+1.Monolithic Architecture pattern
+    Legacy way of building "distributed apps"
+2.Microservice Architecture pattern
+    Modern way of building "distributed apps"
+
+
+			Since Spring is Distributed java App framework, You can build n-tier client-server distributed application
+
+					We can build "Monolithic" and also we can     build "Microservices" based apps
+										 Using Spring
+
+
+As a java developer, 
+  I need to know what are the concepts available to start  building Monolithic apps in Spring.
+  I need to know what are the concepts available to start  building Microservices apps in Spring.
+
+Step by Step learning :
+
+1.Spring core Framework & Boot
+2.Spring Data 
+3.Api Development using webservices - Rest / Soap
+4.Integration /MOM using RabbitMQ or Kafka
+----------------------------------------------------------------------------------------------Monolithic pattern
+
+Microservices :
+5."Spring Cloud"- framework which provides all infrastructure   to build Microservices based distributed apps.
+6.Dev ops
+7.Cloud Technologies
+
+........................................................................................................................................................................................................................................
+									 History Of Spring Framework
+.......................................................................................................................................................................................................................................
+Early 2000,Java become very popular for building distributed Applications.
+
+Java technology can be classified into three editions
+
+1.JSE 
+   -Core java programming language
+2.JEE
+   -Building distributed apps 
+3.JME
+   -Device apps like mobile
+
+.........................................................................................................................................................................................................................................
+JCP - Java Community Process
+ Who standardize the entire Java Technology.
+
+Java works based on Specification,
+   Rules and regulations how things are working.
+
+JSE - How java programming language works
+JVM - How Java vm can be implemented.
+
+.........................................................................................................................................................................................................................................
+						                             JEE -Enterprise Specification
+........................................................................................................................................................................................................................................
+JEE Platform spec : 
+    containers /app containers/tools
+
+1.Web Technology spec
+ Java servlet
+ JSP
+ JSF
+ WebSocket
+ JSTL
+ EL
+
+2.Enterprise Application spec
+EJB
+JPA -ORM
+JMS
+JTA
+DI
+Context and DI
+Concurrency Util
+
+3.Web Services
+
+SOAP based  -JAX-WS
+REST Based  -JAX-RS
+
+4.Management and Security technologies
+.........................................................................
+Java EE Security spec
+Java Auth
+Java authorization
+JAVA EE additional spec
+JMX -Jmeter
+
+..........................................................................................................................................................................................................................................
+									  Complexity of JEE Spec and implementation
+........................................................................................................................................................................................................................................
+
+JEE enterprise/distributed application:
+..............................................................
+
+......................................................................................................................
+Client Layer         Web Layer      Biz layer      Data Layer/Persistency
+.....................................................................................................................
+Browser              Servlet/JSP       EJB               EJB  - Entity Beans
+
+EJB :Enterprise Java Bean
+  Java Object(bean) can support distributed biz operations
+eg: incase of shopping cart
+  I have a bean(java object) which has three apis addToCart, Checkout, Payment
+
+Api classifications:
+1.Session Bean  - to represent biz logic---jdbc--DML
+2.Enitity bean  -ORM - Object to Table mapping-First ORM solution---Hibernate
+3.Message Driven Bean - Message driven systems-RabbitMQ, JMS
+
+
+			Rod Johnson  was working in enterprise banking application with JEE, 
+								he faced lot of 
+complexity in designing EJB driven systems, so he decided to move out EJB from JEE application, he wrote book called expert  J2EE Development without EJB -  "Expert One-one-One J2EE Design and Development"
+
+He proposed a model  that model later on came as The project in "Spring Season" - Spring Framework.
+
+...................................................................................................................................................................................
+Client Layer         Web Layer      Biz layer            	         Data Layer/Persistency
+....................................................................................................................................................................................
+Browser             Spring MVC     Spring Services          Spring-orm - Spring- data
+....................................................................................................................................................................................
+
+				Spring development objective is "POJO". (Plain Old Java Object)
+
+	When you build enterprise java apps, no plumbing(boiler plate code),Spring framework takes care that plumbing.
+
+Since Java is Object Oriented Programming language.   Apps built on java collection of objects.
+
+Object Oriented Principles:
+...........................................
+1.Abstraction
+2.Encapsulation
+3.Hierarchy
+4.Typing
+5.Modularity
+----------------------
+6.Concurrency
+7.Persistency
+........................................................................................................................................................................................................................................
+							   		  1.Object Management :Hierarchy
+..........................................................................................................................................................................................................................................
+Object Relationship
+
+-HAS-A -  Composition
+-IS-A - Inheritance
+
+Enterprise application challenges:
+  1.Object Management
+
+class Order {
+   Product product
+}
+
+class Customer{
+   Order order
+}
+
+class Product {
+  Item item
+}
+class Item {
+
+}
+
+Customer information
+ ->Order
+     -Product
+        -Item
+
+You have to create Object for every class
+You have to pass object reference to every Object - HAS-A
+
+new Customer(new Order(new Item()))
+..........................................................................................................................................................................................................................................
+											IOC : Inversion of Control
+............................................................................................................................................................................................................................................In enterprise application object creation and linking objects are so complex that should be removed from the developer.
+
+
+Someone should take care object creation and linking= 
+  =>This process is called as IOC.
+The IOC suggest the automation program, that program called as IOC Container.
+
+Management - creating object and maintaining its relationship references
+			-developer via code
+
+Do Opposite - Don't create object , don't management object life cycle
+ 				  IOC
+Some body has to create objects and manage its relationship - "Automated Program"
+	   -IOC Container
+
+IOC container implementation:
+ 	-Spring framework provides at core ICO container - Spring Context
+
+Spring framework is "java Application" which is used to build java distributed app.
+		Spring takes care of creating "objects and links those objects" -IOC Container.
+
+
+............................................................................................................................................................................................................................
+								Spring Application
+........................................................................................................................................................................................................................
+   The application is written in java technology, executed on Spring Container which is runtime for spring applications.spring container runs on jvm
+
+
+			  Spring Application
+				 |
+			   Spring Container
+				 |
+				JVM
+What is framework?
+   One Stop Solution
+	 Collection of tools and technologies provided in one place to build end to end applications mostly.
+  
+
+What spring framework offers?
+ Spring offers collection of many projects.
+
+1.Core:
+IoC container,
+Events, 
+Resources, 
+i18n,
+Validation,
+Data Binding,
+Type Conversion, 
+SpEL,
+AOP.
+
+2.Spring MVC
+3.Spring cloud
+etc....
+https://spring.io/projects/
+
+1.Core:
+IoC container,
+Events, 
+Resources, 
+i18n,
+Validation,
+Data Binding,
+Type Conversion, 
+SpEL,
+AOP.
+
+2.Spring MVC
+3.Spring cloud
+etc....
+https://spring.io/projects/
+
+For implementing IOC and DI, spring offers three technique
+
+Spring is based on Configuration:
+
+Three types of configuration:
+
+1.XML driven - old way of configuration
+2.Java Config Driven - after xml
+3.Boot Driven - highly automated configuration system.
+
+We are going to see all types of configuration...
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Spring Versions and features
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+🌱 History of Spring Framework
+
+🏁 **2002: Birth of Spring**
+
+* **Rod Johnson** published his book *"Expert One-on-One J2EE Design and Development"*.
+* The book criticized the complexity of J2EE (EJB) and introduced a simpler programming model.
+* This led to the creation of the **Spring Framework**, initially as an open-source project.
+
+📅 2003: Spring Framework Released (v1.0 RC)
+
+* First version released to the public as an alternative to EJB.
+* Introduced key concepts like:
+  * **Inversion of Control (IoC) / Dependency Injection (DI)**
+  * **Aspect-Oriented Programming (AOP)**
+
+🚀 **2004: Spring Framework 1.0**
+
+* First stable release.
+* Adopted by Java developers who disliked heavy J2EE stacks.
+* Enabled **lightweight enterprise applications** with POJOs.
+
+📦 **2006: Spring 2.0**
+
+* Introduced **XML-based configuration** enhancements.
+* **Bean annotations** and **AOP improvements**.
+* Gained widespread adoption in enterprise development.
+
+🌀 **2009: Spring 3.0**
+
+* Introduced **Java-based configuration** and **Spring Expression Language (SpEL)**.
+* Full support for **Java 5+ annotations**.
+* Integration with REST, and started supporting modern web stacks.
+
+⚙️ 2013: Spring Framework 4.0
+
+* Fully compatible with **Java 8** and **Java EE 7**.
+* Introduced **WebSocket** and **Java 8 lambda support**.
+* Better support for **Groovy**, **Conditional Beans**, and core performance improvements.
+
+⚡ **2014: Spring Boot 1.0**
+
+* Game-changer: made Spring development easy!
+* Key features:
+  * **Auto-configuration**
+  * **Embedded servers (Tomcat, Jetty)**
+  * **Opinionated defaults**
+  * No XML required.
+
+☁️ **2015–2016: Spring Cloud & Microservices Era
+
+* Spring embraced **Microservices architecture**:
+
+  * Spring Cloud Config
+  * Spring Cloud Netflix (Eureka, Zuul)
+  * Spring Cloud Gateway
+  * Circuit Breaker (Hystrix)
+  * Distributed Tracing
+
+♻️ **2017: Spring 5.0**
+
+* Introduced **Spring WebFlux** for reactive programming.
+* Support for **Java 9**, **Project Reactor**, **Kotlin**.
+* Embraced **functional and reactive paradigms**.
+
+🚀 **2018: Spring Boot 2.x**
+
+* Enhanced support for:
+
+  * Reactive programming
+  * Actuator metrics
+  * Spring Security enhancements
+  * Micrometer metrics
+
+🌟 **2022: Spring Framework 6 & Spring Boot 3**
+
+* **Major milestone** — requires **Java 17** and **Jakarta EE 10**.
+* Spring Boot 3 aligned with Spring 6.
+* Features:
+  * **AOT (Ahead-of-Time) compilation**
+  * **GraalVM native image support**
+  * **Improved observability (Micrometer, OpenTelemetry)**
+  * **Better modularity and performance**
+
+
+📅 **2024–2025: Spring Boot 3.2 and 3.3**
+
+* Continued improvements in:
+
+  * **Startup time**
+  * **Container image optimizations**
+  * **Kubernetes-native support**
+  * **Built-in support for JSON\:API, HATEOAS**
+  * **Native executables via GraalVM**
+  * Simplified **Spring Security DSL**
+
+🔮 Future of Spring
+
+* **Spring AI** for integrating AI/ML services.
+* Improved **developer experience (DX)** with tools like Spring Tools 4 & Spring CLI.
+* Deep **Cloud-Native** support (AWS, Azure, GCP).
+* Even tighter integration with **Kubernetes** and **Serverless**.
+
+🧠 Summary
+
+| Version           | Highlights                                 |
+| ----------------- | ------------------------------------------ |
+| Spring 1.x        | Lightweight container, IoC/AOP             |
+| Spring 2.x        | XML config improvements, more integrations |
+| Spring 3.x        | Java-based config, REST support            |
+| Spring 4.x        | Java 8, WebSocket, Conditional beans       |
+| Spring Boot 1     | Auto-config, embedded server, CLI support  |
+| Spring 5.x        | Reactive (WebFlux), Kotlin, Java 9+        |
+| Spring Boot 2     | Micrometer, actuator, reactive boot        |
+| Spring 6 + Boot 3 | Java 17+, Jakarta EE 10, native support    |
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Spring Core Concepts
+.........................................................................................................................................................................................................................................
+Spring Core Concepts:
+
+1.Spring Bean
+
+What is Bean?
+
+  Bean is terminology coined by SUN Micro System to name java object.
+
+Object vs Bean?
+
+ -Same but Bean has some special characteristics  which was proposed by SUN micro system via "Java Bean Spec".
+
+It is java class, based Java Bean standards
+ 	-class should be public
+ 	-properties should be private
+ 	-set and get methods - Accessors and mutators
+	-constructors
+
+Why Bean Spec?
+  - in order to standardize the java dev process- Coding Standards.
+
+public class Customer {
+  private  int id;
+  private String name;
+}
+    					"Spring  follows java bean spec in order to create object and links objects"
+
+class CustomerService {
+
+   private CustomerRespository rep;
+
+   CustomerService(){
+
+   }
+   set /get
+
+}
+class CustomerRespository{
+
+
+}
+
+				Spring Bean is Java Object follows Bean Specification and also managed by Spring Container.
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											  	 Spring Bean Creation(Object)
+.........................................................................................................................................................................................................................................
+
+
+Who creates Spring Beans?
+
+ -Spring Container
+    Spring container is java object, which manages object(bean) life cycle like   create,use,destroy.
+
+
+How spring beans are created?
+
+-> you must have bean definitions outside application biz logic
+-> sp container reads that bean definitions, initalizes the beans.
+
+Architecture:
+
+			POJO Classes(Bean)
+				 |
+  		  Spring-Application <====>Spring Container
+      				config file-------------- |
+					|
+		       Fully configured System
+
+	Spring Bean Definitions(file) instructs Spring Container how to create objects(order of creations) and how to link (DI) objects
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							Spring Application Configuration Management
+							.....................................................................................
+Spring Application can be configured in many ways
+
+1.XML files  -  Old and Legacy.
+
+2.Java Config + Annotations -Modern way
+
+  2.1 Java Config -Manual - Write Configuration and logic
+
+   Here Dev need to write Configuration and biz logic , which makes app dev slower.
+
+Just Focus logic, automate configuration itself - Auto Config
+
+3.AutoConfig:
+    Framework must take care of configuration based on various conditions like
+ i want web and jpa , messaging.
+                        "Birth of Spring Boot"
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Spring Project Setup 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+We are going to learn 
+ How to work with xml based config
+ How to work with java based config
+ How to work with boot based config
+
+Project setup with xml:
+.......................................
+
+1.Plain maven or gradle project with spring framework dependencies
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ibm.spring</groupId>
+    <artifactId>springxmlconfig</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+   <dependencies>
+       <dependency>
+           <groupId>org.springframework</groupId>
+           <artifactId>spring-context</artifactId>
+           <version>6.2.9</version>
+       </dependency>
+   </dependencies>
+</project>
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Use Case: Object creations without spring
+....................................................................................................................................................................................................................................
+
+package com.ibm.spring.core.beans;
+
+public class Customer {
+    private int id;
+    private String name;
+
+    public Customer() {
+    }
+
+    public Customer(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+
+}
+package com.ibm.spring.core.beans;
+
+public class BeanCreation {
+    public static void main(String[] args) {
+        //create Customer Bean
+        Customer customer = new Customer(1,"Subramaian");
+        System.out.println(customer.getId() + " " + customer.getName());
+
+        Customer newCustomer = new Customer();
+        newCustomer.setId(2);
+        newCustomer.setName("Murugan");
+        System.out.println(newCustomer.getId() + " " + newCustomer.getName());
+    }
+}
+
+package com.ibm.spring.core.beans;
+
+public class GreeterService {
+    public String sayHello(){
+        return "Hello";
+    }
+}
+package com.ibm.spring.core.beans;
+
+public class BeanCreation {
+    public static void main(String[] args) {
+         GreeterService greeterService = new GreeterService();
+        System.out.println(greeterService.sayHello());
+    }
+}
+
+
+here 
+=> we create objects
+=> we populate data via setters and constructors.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									 Spring and Object Creation
+...................................................................................................................................................................................................................................
+
+In order to create object by spring, we need a configuration system.
+
+1.XML based configuration- very very old-nobody is using today, but which is foundation for modern spring configuration(auto-spring boot)
+
+2.java config - new way of configuration used today- auto config.
+
+
+XML based configuration:
+1.config xml
+
+place beans.xml in the class path - resources/beans.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+<!--    Bean definitions-->
+    <bean id="greeterService" class="com.ibm.spring.core.beans.GreeterService"/>
+</beans>
+package com.ibm.spring.core.beans;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class BeanCreationUsingSpring {
+    public static void main(String[] args) {
+        //create instance of spring container
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        GreeterService greeterService = context.getBean(GreeterService.class);
+        System.out.println(greeterService.sayHello());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								Populate data via spring context-beans.xml
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							 How to initialize the properties inside beans.xml
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Dependency Injection
+
+What is dependency Injection?
+
+  Linking objects
+  Setting Object Property values
+  Setting Object references with Object who refers it.
+
+Dependency Injection on reference types and Primitives.
+
+class Customer {
+   private int id - primtive - Dependency
+   private Order order - Reference type - Dependency
+}
+Types of DI:
+1.Setter
+    Linking objects and properties after objects created
+2.Constructor
+    Linking objects, During object creation.
+3.Field Injection
+   Linking objects after Creation
+Setter Injection
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="customer" class="com.ibm.spring.core.beans.Customer">
+        <!--      setter injection-->
+        <property name="id" value="10"/>
+        <property name="name" value="Subramanian Murugan"/>
+    </bean>
+
+</beans>
+
+
+package com.ibm.spring.core.beans.xml;
+
+import com.ibm.spring.core.beans.Customer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class CustomerSpringBean {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        Customer customer = context.getBean(Customer.class);
+        System.out.println(customer);
+
+    }
+}
+...........................................................................................................................................................................................................................................
+Constructor injection:
+
+Constructor injection:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="greeterService" class="com.ibm.spring.core.beans.Customer">
+        <constructor-arg name="id" value="13"/>
+        <constructor-arg name="name" value="Subramanian Murugan"/>
+    </bean>
+
+</beans>
+package com.ibm.spring.core.beans.xml;
+
+import com.ibm.spring.core.beans.Customer;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class CustomerSpringBean {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        Customer customer = context.getBean(Customer.class);
+        System.out.println(customer);
+
+    }
+}
+When to use Setter vs Constructor?
+
+Note: 
+ Constructor properties are initialized  during object creations
+ Setter properties are initialized after object creations
+
+Spring supports both. You can mix and match.
+
+
+Constructors:
+  ->Enforce mandatory dependencies
+
+Setters:
+ 1.Allow optional dependencies
+
+
+Setter and constructor injections can be done with primitive data types and reference types
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							Reference Type:
+Reference Type:
+ both setter and constructor injections
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="product" class="com.ibm.spring.core.beans.xml.reference.Product">
+        <constructor-arg name="productId" value="1"/>
+        <constructor-arg name="name" value="Phone"/>
+    </bean>
+<!--    <bean id="order" class="com.ibm.spring.core.beans.xml.reference.Order">-->
+<!--        &lt;!&ndash;        constructor injection &ndash;&gt;-->
+<!--        <constructor-arg name="orderId" value="1000"/>-->
+<!--        <constructor-arg name="ordervalue" value="2345.683434"/>-->
+<!--        <constructor-arg name="product" ref="product"/>-->
+
+<!--    </bean>-->
+
+    <bean id="order" class="com.ibm.spring.core.beans.xml.reference.Order">
+        <!--        setter injection -->
+        <property name="orderId" value="1000"/>
+        <property name="ordervalue" value="2345.683434"/>
+        <property name="product" ref="product"/>
+
+    </bean>
+
+
+</beans>
+
+package com.ibm.spring.core.beans.xml.reference;
+
+public class Order {
+    private int orderId;
+    private double ordervalue;
+
+    private Product product ;
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "orderId=" + orderId +
+                ", ordervalue=" + ordervalue +
+                ", product=" + product +
+                '}';
+    }
+
+    public Order(int orderId, double ordervalue, Product product) {
+        this.orderId = orderId;
+        this.ordervalue = ordervalue;
+        this.product = product;
+    }
+
+    public Order() {
+    }
+
+    public int getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(int orderId) {
+        this.orderId = orderId;
+    }
+
+    public double getOrdervalue() {
+        return ordervalue;
+    }
+
+    public void setOrdervalue(double ordervalue) {
+        this.ordervalue = ordervalue;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+}
+package com.ibm.spring.core.beans.xml.reference;
+
+public class Product {
+
+    private  int productId;
+    private String name;
+
+    public Product() {
+    }
+
+    public Product(int productId, String name) {
+        this.productId = productId;
+        this.name = name;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+                "productId=" + productId +
+                ", name='" + name + '\'' +
+                '}';
+    }
+}
+
+
+package com.ibm.spring.core.beans.xml.reference;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class ReferenceTypeInjection {
+    public static void main(String[] args) {
+
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        Order order=context.getBean(Order.class);
+        System.out.println(order);
+
+    }
+}
+
+
+
+
+					

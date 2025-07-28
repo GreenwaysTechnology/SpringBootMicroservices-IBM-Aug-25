@@ -1,0 +1,16 @@
+
+
+Topics:
+
+1.Spring framework fundamentals
+2.Spring Boot 
+3.API development using Spring MVC
+4.Microservices patterns and principles
+5.Microservice implementation Using Spring cloud Project
+
+
+Software Requirement:
+
+1.Java 17 -  Oracle JDK or Open JDK
+2.IDE - Intellij Idea community Edition
+3.Docker Desktop

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!--    Create all interface implementations-->
+
+    <bean id="sql" class="com.ibm.spring.core.di.interfaces.SQLRepositoryImpl"/>
+    <bean id="nosql" class="com.ibm.spring.core.di.interfaces.NQSQLRepositoryImpl"/>
+    <bean id="customerDAO" class="com.ibm.spring.core.di.interfaces.CustomerDAO">
+        <constructor-arg name="repository" ref="nosql"/>
+    </bean>
+</beans>

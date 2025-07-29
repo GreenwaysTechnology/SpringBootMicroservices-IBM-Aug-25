@@ -4,13 +4,19 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="product" class="com.ibm.spring.core.beans.hasa.Product">
-        <property name="id" value="1"/>
-        <property name="productName" value="Iphone"/>
+    <bean id="order" class="com.ibm.spring.core.beans.xml.autowire.Order">
+        <property name="orderId" value="100"/>
+        <property name="orderValue" value="2232323"/>
     </bean>
-    <bean id="order" class="com.ibm.spring.core.beans.hasa.Order">
-        <property name="orderId" value="1000"/>
-        <property name="product" ref="product"/>
+<!--    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer">-->
+<!--        <property name="id" value="999"/>-->
+<!--        <property name="name" value="Subramaian"/>-->
+<!--        &lt;!&ndash;        Without Autowire&ndash;&gt;-->
+<!--        <property name="order" ref="order"/>-->
+<!--    </bean>-->
+    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer" autowire="constructor">
+        <property name="id" value="999"/>
+        <property name="name" value="Subramaian"/>
     </bean>
 
 </beans>

@@ -477,8 +477,6 @@ class CustomerRespository{
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 											  	 Spring Bean Creation(Object)
 .........................................................................................................................................................................................................................................
-
-
 Who creates Spring Beans?
 
  -Spring Container
@@ -488,7 +486,7 @@ Who creates Spring Beans?
 How spring beans are created?
 
 -> you must have bean definitions outside application biz logic
--> sp container reads that bean definitions, initalizes the beans.
+-> sp container reads that bean definitions, initializes the beans.
 
 Architecture:
 
@@ -911,8 +909,432 @@ public class ReferenceTypeInjection {
 
     }
 }
+.........................................................................................................................................................................................................................................
+								Dependency Injection values
+........................................................................................................................................................................................................................................
+1.You can inject primitives values- int,float,string,char,boolean
+2.You can inject objects -Customer ,Address
+3.You can inject list - Collections,Map,List,Set
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										    Interface based dependency
+
+1.Declare interface
+
+package com.ibm.spring.core.di.interfaces;
+
+import java.util.List;
+
+public interface Repository {
+    List<String> listAll();
+}
+
+2.Implementations
+
+package com.ibm.spring.core.di.interfaces;
+
+import java.util.List;
+
+public class SQLRepositoryImpl implements Repository {
+    @Override
+    public List<String> listAll() {
+        return List.of("CREATE", "UPDATE", "DELETE", "SELECT");
+    }
+}
+
+package com.ibm.spring.core.di.interfaces;
+
+import java.util.List;
+
+public class NOSQLRepositoryImpl implements Repository {
+    @Override
+    public List<String> listAll() {
+        return List.of("SET", "GET");
+    }
+}
+
+Injector class:
+package com.ibm.spring.core.di.interfaces;
+
+public class CustomerDAO {
+    private Repository repository;
+
+    public CustomerDAO() {
+    }
+
+    public CustomerDAO(Repository repository) {
+        this.repository = repository;
+    }
+
+    public Repository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(Repository repository) {
+        this.repository = repository;
+    }
+}
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--     Create all Interface implementations-->
+
+    <bean id="sql" class="com.ibm.spring.core.di.interfaces.SQLRepositoryImpl"/>
+    <bean id="nosql" class="com.ibm.spring.core.di.interfaces.NOSQLRepositoryImpl"/>
+
+    <bean id="customerDAO" class="com.ibm.spring.core.di.interfaces.CustomerDAO">
+        <!--        <constructor-arg name="repository" ref="nosql"/>-->
+        <constructor-arg name="repository" ref="sql"/>
+    </bean>
+
+
+</beans>
+Main:
+package com.ibm.spring.core.di.interfaces;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class InterfaceMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans-interface-di.xml");
+        CustomerDAO customerDAO = context.getBean(CustomerDAO.class);
+        System.out.println(customerDAO.getRepository().listAll());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Bean Definitions
+										     (Bean Configuration)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+1.How to create bean 
+   class, factory-method
+
+2.How to name beans?
+   id, name, alias
+
+3.scope of the beans? : visibility of the bean
+   singleton, prototype,
+   request, session, application, WebSocket
+
+4.Dependence Injections
+   constructor
+   setter
+   autowire
+
+5.Lazy initialization mode
+ controlling bean creations
+  eagar-default
+  lazy-ondemand
+  lazy-init="true"
+
+5.How to simplify bean injections? 
+   Auto wiring mode 
+ no,byName,byType,constructor  
+
+..........................................................................................................................................................................................................................................
+										Bean Creation
+........................................................................................................................................................................................................................................
+
+1.Via class  
+   Spring creates using new Operator
+     new Order()
+   <bean id="order" class="com.ibm.spring.core.Order"/>
+
+2.Via Factory Pattern
+ -if constructor marked private
+     via factory factory api.
+
+constructor pattern:
+   <bean id="customerDAO" class="com.ibm.spring.core.beans.xml.interfaces.CustomerDAO">
+        <constructor-arg name="repository" ref="nosql"/>
+    </bean>
+
+Factory Pattern:
+..........................
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--    create bean via factory-->
+    <bean id="userService" class="com.ibm.spring.core.beans.xml.factory.UserService" factory-method="getInstance"/>
+
+
+</beans>
+
+package com.ibm.spring.core.beans.xml.factory;
+
+public class UserService {
+
+    private UserService() {
+
+    }
+
+    public String getUserInfo() {
+        return "User info";
+    }
+
+    public static UserService getInstance() {
+        return new UserService();
+    }
+}
+
+package com.ibm.spring.core.beans.xml.factory;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class FactoryMain {
+    public static void main(String[] args) {
+        //UserService userService =new UserService();
+//        UserService userService = UserService.getInstance();
+//        System.out.println(userService.getUserInfo());
+
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        UserService userService = context.getBean(UserService.class);
+        System.out.println(userService.getUserInfo());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Bean scopes
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Generally, you can create multiple instance from bean definition.
+  some times if you want to control that bean creation
+you can use bean creation scope.
+
+Spring supports 6 scopes:
+ singleton,prototype - core scope
+ request,session,application,websocket - Belongs to Web Application
+
+1.Singleton
+ (Default) Scopes a single bean definition to a single object instance for each Spring IoC container.
+ if you call getBean no of time, spring returns the only one instance at any point of time.
+This is default scope.
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--    create bean via factory-->
+    <bean id="helloService" class="com.ibm.spring.core.beans.xml.scopes.HelloService"/>
 
 
 
+</beans>
 
-					
+package com.ibm.spring.core.beans.xml.scopes;
+
+public class HelloService {
+
+    public String sayHello() {
+        return "Hello";
+    }
+}
+
+package com.ibm.spring.core.beans.xml.scopes;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class SingleTonMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        //getBean returns new Instance
+        HelloService helloService1 = context.getBean(HelloService.class);
+        System.out.println("helloService1 " + helloService1.hashCode());
+        HelloService helloService2 = context.getBean(HelloService.class);
+        System.out.println("helloService2 " + helloService2.hashCode());
+        HelloService helloService3 = context.getBean(HelloService.class);
+        System.out.println("helloService3 " + helloService3.hashCode());
+
+
+    }
+}
+
+outPut:
+helloService1 1088872417
+helloService2 1088872417
+helloService3 1088872417
+
+here you can note down, the same hashcode value for n- number of getBean call.
+that means we have only one instance -single Ton.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+												2.prototype
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+a new bean instance is created every time a request for that specific bean is made 
+that is, the bean is injected into another bean or you request it through a get Bean() method call on the container.
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--    create bean via factory-->
+    <bean id="helloService" class="com.ibm.spring.core.beans.xml.scopes.HelloService" scope="prototype"/>
+
+
+
+</beans>
+package com.ibm.spring.core.beans.xml.scopes;
+
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class ProtoTypeMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        //getBean returns new Instance
+        HelloService helloService1 = context.getBean(HelloService.class);
+        System.out.println("helloService1 " + helloService1.hashCode());
+        HelloService helloService2 = context.getBean(HelloService.class);
+        System.out.println("helloService2 " + helloService2.hashCode());
+        HelloService helloService3 = context.getBean(HelloService.class);
+        System.out.println("helloService3 " + helloService3.hashCode());
+
+
+    }
+}
+
+output:
+helloService1 1173643169
+helloService2 1436664465
+helloService3 558187323
+
+here you can see different hashcode values, so that we can understand we have different beans.
+.......................................................................................................................................................................................................................................
+								     Automations
+......................................................................................................................................................................................................................................
+How to gradually reduce configurations from the xml, so that spring takes care internally, we can reduce developer job with related to focusing on configuration.
+
+DI automations:
+
+Dependency Injections:
+ ->property - setter injections
+ ->constructor-arg ref ->constructor injections
+
+->autowire 
+Which is not new injection type, but it simplifies property and constructor injections
+
+ autowire="no | byName | byType | constructor"
+
+     no ->Explicit via property or constructor-arg
+     byName - Implicit via property
+     byType - Implicit via type + property
+     constructor - Implicit via constructor
+
+
+Lab:
+ Customer
+     |
+     Address ----auto wire
+
+......................
+
+With AutoWire:
+..............
+
+Note:
+ we need to add single arg constructor which must take Order as arg.
+
+package com.ibm.spring.core.beans.xml.autowire;
+
+public class Customer {
+    private int id;
+    private String name;
+    private Order order;
+
+    public Customer() {
+    }
+
+    public Customer(Order order) {
+        this.order = order;
+    }
+
+    public Customer(int id, String name, Order order) {
+        this.id = id;
+        this.name = name;
+        this.order = order;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", order=" + order +
+                '}';
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+}
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="order" class="com.ibm.spring.core.beans.xml.autowire.Order">
+        <property name="orderId" value="100"/>
+        <property name="orderValue" value="2232323"/>
+    </bean>
+    <!--    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer">-->
+    <!--        <property name="id" value="999"/>-->
+    <!--        <property name="name" value="Subramaian"/>-->
+    <!--        &lt;!&ndash;        Without Autowire&ndash;&gt;-->
+    <!--        <property name="order" ref="order"/>-->
+    <!--    </bean>-->
+
+    <!--    autowrire using setters : byType or byName -->
+    <!--    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer" autowire="byType">-->
+    <!--        <property name="id" value="999"/>-->
+    <!--        <property name="name" value="Subramaian"/>-->
+    <!--    </bean>-->
+    <!--    autowrire using constructor : constructor -->
+
+    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer" autowire="constructor">
+        <property name="id" value="999"/>
+        <property name="name" value="Subramaian"/>
+    </bean>
+
+</beans>
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											

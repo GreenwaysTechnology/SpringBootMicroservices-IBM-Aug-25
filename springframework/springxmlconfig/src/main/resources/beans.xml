@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="
-        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-        <property name="locations" value="classpath:application.properties"/>
-    </bean>
-
-  <bean id="customer" class="com.ibm.spring.core.beans.extensions.Customer">
-      <property name="id" value="${customer.id}"/>
-      <property name="name" value="${customer.name}"/>
-  </bean>
-
+    <!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+<!--    Tells the spring to container scan packages and create beans automatically-->
+    <context:component-scan base-package="com.ibm.spring"/>
+<!--    <bean id="helloService" class="com.ibm.spring.core.beans.annotations.HelloService"/>-->
 </beans>

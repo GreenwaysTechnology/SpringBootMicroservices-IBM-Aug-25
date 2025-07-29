@@ -3,6 +3,7 @@ package com.ibm.spring.core.beans.extensions;
 public class Customer {
     private int id;
     private  String name;
+    private Address address;
 
     public Customer() {
     }

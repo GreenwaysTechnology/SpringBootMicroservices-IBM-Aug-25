@@ -1632,6 +1632,437 @@ public class PropertyPlaceHolder {
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 How to introduce Annotations -Annotation Driven configuration?
+Annotations:
+ Meta Information about class,methods,fields.
+
+Why Annotation?
+ Annotations help to inject "boiler plate code" -The code which is not necessary for the dev but necessary for compiler,build tools,document generation tools,runtime.
+
+Spring Introduced Annotations to simplify the lot of code generations.
+
+Types of Spring Annotations
+1.Spring Propriety annotations
+2.JSR 250 Annotations 
+
+
+How to introduce Annotations inside Spring?
+ 	 Via Container Extension Mechanism
+
+Common Annotations:
+1.RequiredAnnotationBeanPostProcessor - @Required
+2.AutowiredAnnotationBeanPostProcessor  -@Autowired
+3.CommonAnnotationBeanPostProcessor  -@Common
+4.PersistenceAnnotationBeanPostProcessor -@Entity
+etc....
+
+....................................................................................
+	  How to introduce Annotations -Annotation Driven configuration
+.....................................................................................
+Annotations:
+ Meta Information about class,methods,fields.
+
+Why Annotation?
+ Annotations help to inject "boiler plate code" -The code which is not necessary for the dev but necessary for compiler,build tools,document generation tools,runtime.
+
+Spring Introduced Annotations to simplify the lot of code generations.
+
+Types of Spring Annotations
+
+1.Spring Propriety annotations
+2.JSR 250 Annotations 
+
+
+How to introduce Annotations inside Spring?
+ 
+ Via Container Extension Mechanism
+
+Common Annotations:
+1.RequiredAnnotationBeanPostProcessor - @Required
+2.AutowiredAnnotationBeanPostProcessor  -@Autowired
+3.CommonAnnotationBeanPostProcessor  -@Common
+4.PersistenceAnnotationBeanPostProcessor -@Entity
+etc....
+
+Steps to integrate Annotations:
+
+1.Activate The Annoation via ContainerExtension Point Beans
+
+beans.xml
+
+ <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/>
+ -@Required
+
+ -@Autowried
+<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>
+
+What if any one of the AnnotationBeanPostProcessor has its own dependency, we need to inject That as well, other wise it will throw error.
+
+what if i want to use more annotations, i need to add more AnnotationBeanPostProcessor beans in bean.xml
+  This is very complex
+
+Note: modern spring has implicitly added annotation post bean processors , so you dont need to add "Core Annotation BeanPostProcessor in beans.xml".
+...........................................................................................................................................................................................................................................
+										Automation - Annotation Scanner
+...........................................................................................................................................................................................................................................
+Spring added feature called automated scanner, which scans all annotations from the build path/class path, creates all the beans related to annotationBeanPostProcessor
+
+How to tell spring container to scan annotations?
+   We need to add new xml namespace feature, through which spring attaches all annotation.
+
+beans.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+    
+</beans>
+Eg:
+ Autowire :
+...............
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+<!--    <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/>-->
+
+    <bean id="address" class="com.ibm.spring.core.beans.xml.extensions.annotations.Address">
+        <constructor-arg name="city" value="coimbatore"/>
+        <constructor-arg name="state" value="Tamil Nadu"/>
+    </bean>
+    <bean id="customer" class="com.ibm.spring.core.beans.xml.extensions.annotations.Customer">
+        <property name="id" value="100"/>
+        <property name="name" value="Subramanian Murugan"/>
+<!--&lt;!&ndash;        <constructor-arg name="address" ref="address"/>&ndash;&gt;-->
+    </bean>
+
+</beans>
+package com.ibm.spring.core.beans.xml.extensions.annotations;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class Customer {
+    private int id;
+    private String name;
+
+    @Autowired
+    private Address address;
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address=" + address +
+                '}';
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public Customer(int id, String name, Address address) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+    }
+}
+
+package com.ibm.spring.core.beans.xml.extensions.annotations;
+
+public class Address {
+    private String city;
+    private String state;
+
+    public Address() {
+    }
+
+    public Address(String city, String state) {
+        this.city = city;
+        this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+                "city='" + city + '\'' +
+                ", state='" + state + '\'' +
+                '}';
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+}
+package com.ibm.spring.core.beans.xml.extensions.annotations;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class AutowiredMain {
+    public static void main(String[] args) {
+        ApplicationContext context=new ClassPathXmlApplicationContext("beans.xml");
+        Customer customer =context.getBean(Customer.class);
+        System.out.println(customer);
+
+    }
+}
+........................................................................................................................................................................................................................................
+										Bean Life cycles methods and annotations
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+in order to add life cycle annotations which is not part of spring core which is part of jsr 250. we need to add separate dependency.
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+
+    <bean id="hello" class="com.ibm.spring.core.beans.xml.extensions.annotations.lifecylces.HelloService"/>
+</beans>
+
+
+package com.ibm.spring.core.beans.xml.extensions.annotations.lifecylces;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+public class HelloService {
+
+    @PostConstruct
+    public void init(){
+        System.out.println("Init");
+    }
+
+    @PreDestroy
+    public void destory(){
+        System.out.println("Destory");
+    }
+}
+
+package com.ibm.spring.core.beans.xml.extensions.annotations.lifecylces;
+
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class LifeCylceAnnotations {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        context.getBean(HelloService.class);
+        context.registerShutdownHook();
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							How to reduce code slowly via annotations
+........................................................................................................................................................................................................................................
+
+Types of Annotations
+
+1.JSR 250 annotations
+ @PostConstruct
+ @PreDestroy
+
+2.Spring Annoations
+@Required,@Autowired......etc...
+
+You have beans.xml with annotation configuration, but still we have bean creating definitions how to remove those areas.
+
+How to remove bean definitions from the beans.xml file
+
+   <bean id="customer" class="com.ibm.spring.app.annotations.Customer">
+            <property name="id" value="1"/>
+            <property name="name" value="Subramanian"/>
+   </bean>
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Stereotype Annotations
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+@Component
+
+What is Component?
+
+The term coined by Microsoft in 1989.
+In Object Oriented System Every thing is Object
+The Term object is more general term.
+
+Component is also Object(Bean) in spring context
+  ->It is reusable
+  ->follows all java bean standards
+
+
+In java technology:
+
+Bean
+ In java Bean is called "java Object Only"
+
+EJB
+ It is also java object, which is distributed
+
+Entity
+ It is also java object, which is persist able  into fs,networks,rdbms
+
+Bean or Ejb or Entity ==  Object /instance
+
+
+What is use of @Component?
+ ->To eliminate bean definition from beans.xml file
+
+<bean id="customerService"  class="com.ae.spring.service.impl.CustomerServiceImpl"/>
+
+
+
+Api doc:
+
+ @Target(value=TYPE)
+ @Retention(value=RUNTIME)
+ @Documented
+ @Indexed
+public @interface Component
+
+@Component is class level annotation, declared on the top of class.
+
+Indicates that an annotated class is a "component"
+Such classes are considered as candidates for auto-detection when using annotation-based configuration and class path scanning.
+
+Auto-detection and component scanning:
+
+base package: com.ae.spring
+
+			    com
+			     |
+			    ae
+			     |
+                           spring
+		    -----------------------------
+		   |                            |
+                service                        repo
+		   |                            |
+		 impl                          impl
+-------------------------------       -----------------------------
+  |               |                   |                          |
+CustomerService ProductService     CustomerRepoImpl          ProductRepoImpl
+Impl            Impl
+
+@Component      @Component         @Component                @Component
+
+......................................................................................................................................................................................................................................
+							Automation - Stereotype Annotation Scanner   
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Types of Stereotypes:
+
+1.Component  -@Component
+2.Service    -@Service
+3.Repository -@Repository                >=== Bean === Object
+4.Controller -@Controller
+5.RestController -@RestController
+
+			  
+How to scan SteroTypes?
+
+ <context:component-scan base-package="com.ibm.spring"/>
+
+This package and its subpackages , scan and creates beans and make it ready.
+
+@Component is a generic stereotype for any Spring-managed component.
+
+@Repository, @Service, and @Controller are specializations of @Component for more specific use cases.
+
+by annotating them with @Repository, @Service, or @Controller instead, your classes are more properly suited for processing by tools or associating with aspects.
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+<!--    Tells the spring to container scan packages and create beans automatically-->
+    <context:component-scan base-package="com.ibm.spring"/>
+<!--    <bean id="helloService" class="com.ibm.spring.core.beans.annotations.HelloService"/>-->
+</beans>
+
+package com.ibm.spring.core.beans.annotations;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class HelloService {
+    public  String sayHello(){
+        return  "Hello";
+    }
+}
+package com.ibm.spring.core.beans.annotations;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class ComponentMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        HelloService helloService = context.getBean(HelloService.class);
+        System.out.println(helloService.sayHello());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 
 

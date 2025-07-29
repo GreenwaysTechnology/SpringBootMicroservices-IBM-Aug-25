@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="order" class="com.ibm.spring.core.beans.xml.autowire.Order">
+        <property name="orderId" value="100"/>
+        <property name="orderValue" value="2232323"/>
+    </bean>
+<!--    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer">-->
+<!--        <property name="id" value="999"/>-->
+<!--        <property name="name" value="Subramaian"/>-->
+<!--        &lt;!&ndash;        Without Autowire&ndash;&gt;-->
+<!--        <property name="order" ref="order"/>-->
+<!--    </bean>-->
+    <bean id="customer" class="com.ibm.spring.core.beans.xml.autowire.Customer" autowire="constructor">
+        <property name="id" value="999"/>
+        <property name="name" value="Subramaian"/>
+    </bean>
+
+</beans>

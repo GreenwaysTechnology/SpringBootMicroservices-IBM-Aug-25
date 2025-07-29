@@ -1337,4 +1337,302 @@ public class Customer {
 
 </beans>
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-											
+									  Bean Life cycles
+........................................................................................................................................................................................................................................
+.....................................................................................
+			   Bean Life cycles
+....................................................................................
+
+init
+destroy
+
+Points:
+1.if you want to initialize the resources,
+ Resources:
+   Resource is nothing but ,something outside jvm
+    ex: FileSystem,Databases,Network sockets,Graphics context....
+  Resources must be managed properly , if not , it will give you
+ memory leaks.
+
+In general , resources are initialized inside Class constructors
+eg: Establishing database ,socket connections, create file points,open file
+
+According to spring best practices, dont do it inside constructor
+ Why
+   Which hindrances the bean initialization, which will drop app startup performance.
+
+then where can i initialize
+ spring provides life cycle hooks
+
+   ->init-method="initmethod"
+   ->destroy-method="destroymethod" - Resources clean up
+
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="database" class="com.ibm.spring.core.beans.xml.lifecycles.DatabaseConnection" init-method="init"
+          destroy-method="destroy"/>
+
+</beans>
+
+package com.ibm.spring.core.beans.xml.lifecycles;
+
+public class DatabaseConnection {
+
+    public void init() {
+        System.out.println("Database is being initalized");
+    }
+
+    public void destroy() {
+        System.out.println("Database is being destroyed");
+    }
+}
+
+package com.ibm.spring.core.beans.xml.lifecycles;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class LifeCycleMain {
+    public static void main(String[] args) {
+//        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+//        context.getBean(DatabaseConnection.class);
+        ConfigurableApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        context.getBean(DatabaseConnection.class);
+        context.registerShutdownHook();
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Container Extension Points
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			Typically, an application developer does not need to subclass  ApplicationContext implementation classes.
+	 		Instead, the Spring IoC container can be extended by plugging in implementations of special integration interfaces. 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Spring core System:
+
+		  Spring Application
+			|	
+ 	     Configuration Management System
+		 (tools-XML, Annotations)
+		-------------------------
+		|			|
+		| Spring IOC Container  |
+		------------------------
+			|
+		       JVM
+
+
+How to add extensions(plugins) on to the Existing Spring Container?
+
+
+ 		 Spring Application
+			|	
+ 	    Configuration Management System
+		 (tools-XML,Annotations)
+		-------------------------
+		|			|--->Extensions
+					|    1.BeanPostProcessor 
+		|			|     etc...
+		|			|
+		| 			|
+		| Spring IOC Container  |
+		|			|
+		|			|	
+		|			|
+		|		        |
+		------------------------
+			|
+		       JVM
+
+1.BeanPostProcessor 
+
+1.How to instrument beans
+2.How to instrument containers
+
+
+BeanPostProcessor: Extensions
+..................
+  BeanPostProcessor are classes that tells Spring what should be done after beans are created.
+
+package com.ibm.spring.core.beans.xml.extensions;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+
+public class BeanPostProcessorExtension implements BeanPostProcessor {
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+
+        System.out.println("postProcessBeforeInitialization : " + beanName + " " + bean.hashCode());
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("postProcessAfterInitialization : " + beanName);
+        return bean;
+    }
+}
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="postProcessor" class="com.ibm.spring.core.beans.xml.extensions.BeanPostProcessorExtension"/>
+    <bean id="hello" class="com.ibm.spring.core.beans.xml.extensions.HelloService"/>
+</beans>
+
+package com.ibm.spring.core.beans.xml.extensions;
+
+public class HelloService {
+
+    public String sayHello(){
+        return "Hello";
+    }
+}
+package com.ibm.spring.core.beans.xml.extensions;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class BeanPostProcessorMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        HelloService hello = context.getBean(HelloService.class);
+    }
+}
+.........................................................................................................................................................................................................................................
+			         	     			More Container Features(extensions)
+......................................................................................................................................................................................................................................
+
+ Spring Application
+			|	
+ 	    Configuration Management System
+		 (tools-XML,Annotations)
+		-------------------------
+		|			|--->Extensions
+					|    1.BeanPostProcessor 
+		|			|    2.Features2
+		|			|    3.Feature3
+		| 			|    4.FeatureN
+		| Spring IOC Container  |
+		|			|
+		|			|	
+		|			|
+		|		        |
+		------------------------
+			|
+		       JVM
+
+Spring provides lot of built in extensions.
+..........................................................................................................................................................................................................................................
+											PropertyPlaceholderConfigurer 
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+.....................................................................................
+         	     More Container Features(extensions)
+.....................................................................................
+
+               Spring Application
+			|	
+ 	    Configuration Management System
+		 (tools-XML,Annotations)
+		-------------------------
+		|			|--->Extensions
+					|    1.BeanPostProcessor 
+		|			|    2.Features2
+		|			|    3.Feature3
+		| 			|    4.FeatureN
+		| Spring IOC Container  |
+		|			|
+		|			|	
+		|			|
+		|		        |
+		------------------------
+			|
+		       JVM
+
+Spring provides lot of built in extensions.
+
+
+PropertyPlaceholderConfigurer :
+   It is used to externalize the bean property values
+eg:
+
+Spring provides lot of built in extensions.
+
+PropertyPlaceholderConfigurer :
+   It is used to externalize the bean property values
+eg:
+
+Bean definition file:
+  <bean id="customer" class="com.ibm.spring.core.di.Customer">
+        <property name="id" value="0"/>
+       
+  </bean>
+
+Property value is hardcoded, if want to isloate into some other place.
+
+with PropertyPlaceHolder = ${propertyKey} =>PropertyValue
+
+  <bean id="customer" class="com.ibm.spring.core.di.Customer">
+        <property name="id" value="${customer.id}"/>
+     
+  </bean>
+
+PropertyPlaceholderConfigurer
+
+classpath: resources/application.properties
+
+customer.id=1
+customer.name=Subramanian Murugan
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--    In order to read property file-->
+    <!--    PropertyPlaceholder extension-->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations" value="classpath:application.properties"/>
+    </bean>
+    <bean id="customer" class="com.ibm.spring.core.beans.extensions.Customer">
+        <property name="id" value="${customer.id}"/>
+        <property name="name" value="${customer.name}"/>
+    </bean>
+</beans>
+
+How to read Property Values:
+
+package com.ibm.spring.core.beans.extensions;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class PropertyPlaceHolder {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml-extensions.config.xml");
+        Customer customer = context.getBean(Customer.class);
+        System.out.println(customer.getId() + " " + customer.getName());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Annotations Support -Extension
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+How to introduce Annotations -Annotation Driven configuration?
+
+
+
+

@@ -2510,3 +2510,414 @@ public class JavaConfigMain {
         System.out.println(helloService.sayHello());
     }
 }
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										        Auto Configuration
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Spring allows us automatically configure your spring application based on bean definitions in the "class path"
+
+How to opt-in auto configuration?
+
+@EnableAutoConfiguration
+
+      Enable auto-configuration of the Spring Application Context, attempting to guess and configure beans that you are likely to need. 
+Auto-configuration classes are usually applied based on your class path and what beans you have defined.
+
+    Reduce boiler plate configuration and allow developer to start spring projects with minimal setup (Zero Configuration Philosophy) 
+
+.......................................................................................................................................................................................................................................
+								@EnableAutoconfiguration vs @ComponentScan
+.......................................................................................................................................................................................................................................
+@ComponentScan scans for annotated spring components
+@EnbaleAutoConfiguration is used to enable the auto-configure based on class path and conditional beans
+
+ 					Advanced @EnableAutoConfiguration, will lead new Configuration system
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										Birth of  "Spring Boot"
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Spring boot was created as separate project from Spring framework.
+2013- Spring boot Project started by Phil Webb and Dave Syer at Pivotal
+Goal:
+ To reduce complete Configuration system - Zero Configuration.
+
+Key ideas :
+1.Auto Configuration
+     Based on class path and defined beans
+2.Starters
+     New way of defining project dependencies - POM Dependencies
+		spring-boot-web-starters
+				|
+				which includes all default configuration files and dependencies including ready made server(embedded tomcat)
+3.Embeded servers
+           No need for external server deployments (Tomcat,Jetty,Netty)
+4.Actuator 
+          Exposes in built metrics api, health checks apis
+
+						Using spring boot you can do opinioned Development
+
+		Spring Boot is built on the top of Spring Framework + Auto Configuration + Embedded Server + Convention 
+
+
+for ex, i want to connect to database called MySQL, i need to configure datasources, connection informations ,transactions, hibernate and jpa configurations...
+In the bean definitions..
+  But in Spring 5.x autoconfiguration helps to configure spring app in easy way based on "opinions" such i want database, i want to build webservice, i want to enable logging, i want to enable caching, i want to enable SomeXXX...
+
+if i want, add that jar in the class path, spring provides most of the common settings to kick start app as quick as possible.
+
+ Spring team, created a separate project based on "auto configuration" , that is called "Spring Boot".
+
+Spring Boot makes it easy to create stand-alone, production-grade Spring based Applications that you can "just run".
+
+We take an opinionated view of the Spring platform and third-party libraries so you can get started with minimum fuss. Most Spring Boot applications need minimal Spring configuration.
+
+Spring Boot Focus Mainly Configuration
+
+1.Build Configuration - lib configuration -pom.xml
+2.Application Configuration - Beans and spring managed components-services ,repositories
+
+Why Spring Boot?
+
+Spring Boot  starters reduces build dependency - POM Dependencies/project dependencies  Autoconfiguration reduces the App Dependency
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								How to begin with spring boot application?
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+You can create standalone spring boot app 
+You can create web spring boot app
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Standalone Spring boot Application
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Create  a new Maven Project.
+
+Add standalone starter dependency:
+Spring Boot Starter
+Core starter, including auto-configuration support, logging and YAML
+
+<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+    <version>3.5.4</version>
+</dependency>
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ibm.springboot</groupId>
+    <artifactId>springbootstandalone</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+  <dependencies>
+      <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter -->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter</artifactId>
+          <version>3.5.4</version>
+      </dependency>
+  </dependencies>
+</project>
+
+How to start Spring Boot Application:
+
+package com.ibm.springboot;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class HelloWorldSpringBoot {
+    public static void main(String[] args) {
+        //Application Context
+    ConfigurableApplicationContext context= SpringApplication.run(HelloWorldSpringBoot.class);
+   
+    }
+}
+
+After Running:
+.   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.4)
+
+2025-07-30T12:10:54.806+05:30  INFO 26132 --- [           main] c.ibm.springboot.HelloWorldSpringBoot    : Starting HelloWorldSpringBoot using Java 17.0.10 with PID 26132 (G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootstandalone\target\classes started by subu in G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootstandalone)
+2025-07-30T12:10:54.809+05:30  INFO 26132 --- [           main] c.ibm.springboot.HelloWorldSpringBoot    : No active profile set, falling back to 1 default profile: "default"
+2025-07-30T12:10:55.483+05:30  INFO 26132 --- [           main] c.ibm.springboot.HelloWorldSpringBoot    : Started HelloWorldSpringBoot in 1.28 seconds (process running for 1.695)
+
+Process finished with exit code 0
+.....................................................................................................................................................................................................................................
+								     Internal work flow of the Spring boot
+
+org.springframework.boot.spring-autoconfigure.3.5.4.jar
+	|
+Configuration is based on config meta data provided in "META-INF/spring.factories"
+
+
+Your Main Class
+	|
+	@SpringBootApplication (meta Annotation) 
+        |
+ 	@Configuration + @EnableAutoConfiguration + @ComponentScan
+         |
+	SpringApplication.run()
+		|
+		-Loads Application Context - Container 
+		-Register auto config classes from spring.factories
+			--starts initializing beans/configurations/components   based on rules(conditions)
+		-Setup environments, profiles (default ,dev, prod)
+		-Starts the web container (if your app is web)
+        |
+    beans created ( your beans + auto configured beans)
+     |
+    Application is Ready
+
+
+org.springframework.boot.spring-autoconfigure.3.3.0
+
+spring.factories 
+  It is meta configuration file read by spring container to create objects/beans based on certain conditions -rules
+
+additional-spring-configuration-metadata.json
+
+  {
+      "name": "server.port",
+      "defaultValue": 8080
+    }
+						Annotations are processed by ASM - java bytecode engineering lib.
+https://asm.ow2.io/
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&									Spring Boot and Bean Creation
+*********************************************************************************************************************************************************
+package com.ibm.springboot.beans;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class HelloService {
+
+    public String sayHello(){
+        return  "Hello";
+    }
+}
+
+package com.ibm.springboot.beans;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class BeanCreationMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context= SpringApplication.run(BeanCreationMain.class);
+        HelloService helloService = context.getBean(HelloService.class);
+        System.out.println(helloService.sayHello());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Dependency Injection - In Spring Boot
+*********************************************************************************************************************************************************
+
+
+package com.ibm.springboot.di;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class HelloService {
+
+    public String sayHello(){
+        return  "Hello";
+    }
+}
+
+package com.ibm.springboot.di;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class GreeterService {
+    @Autowired
+    private HelloService helloService;
+    public String sayGreet(){
+        return helloService.sayHello();
+    }
+}
+
+package com.ibm.springboot.di;
+
+import com.ibm.springboot.HelloWorldSpringBoot;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class DependencyMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context= SpringApplication.run(DependencyMain.class);
+        GreeterService greeterService = context.getBean(GreeterService.class);
+        System.out.println(greeterService.sayGreet());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+						  How opinioned app development works - Auto Configuration Deep 
+								    (Conditional Bean Creations)
+........................................................................................................................................................................................................................................
+
+When building a spring boot app, we sometimes want to only load beans or modules(configurations) into the application context(container) if some conditions met, Be it disable some beans during tests, or react to a certain property in the runtime env.
+
+eg:
+ Some beans work in test env, the same bean i dont want in production env.
+ enable or disable some certain cross cutting concerns.
+  eg:
+    we have built a module that configures security, during dev test, we dont want to have username and passwords every time. so i want to disable the whole security module in local tests.
+
+ if some external resources is available without which they cant work. 
+   for eg: my application should not work if there is no logback.xml file has been found on classpath.
+
+
+- if beans does not exits  / exits
+- if module does not exits / exits
+- if external does not exits  / exits
+
+Declaring Conditional Bean:
+..........................
+In application, you can declare bean any where, optionally we can add condition.
+
+only if this condition is satisfied will the bean added to the application context
+
+
+Syntax: @Condtional 
+ 
+Can be applied at bean level, configuration level ,component level
+
+@Configuration
+class MyBeanConfig {
+
+ @Conditional(...)
+ @Bean
+ public MyBean  getBean(){ 
+       return new MyBean()
+ }
+
+}
+
+Module Level
+
+@Configuration
+@Conditional(...)
+class MyBeanConfig {
+
+ @Bean
+ public MyBean  getBean(){ 
+       return new MyBean()
+ }
+
+}
+
+Component Level
+
+@Component
+@Conditional(...)
+class MyComponent {
+
+ 
+}
+
+Predefined Conditions:
+......................
+1.ConditionalOnProperty 
+   Loads beans based on env property - application.properties
+2.ConditionalOnExpression
+3.ConditionalOnBean
+4.ConditionalOnMissingBean
+5.ConditionalOnResource
+6.ConditionalOnClass
+7.ConditionalOnJava -  version based
+
+etc..
+custom conditions
+Boolean Operators
+Or
+And
+
+
+
+ConditionalBean:
+
+-OnBean - The bean if  threre , what should i do
+
+eg:
+if Mysql dependency (driver jar) in the build path
+     -Create Datasource Object
+           -Add properties - connection string - url,password,userName
+
+
+-OnMissing -Then bean if not there ,what should i do
+  if web missing, then start console container
+
+eg:
+
+
+package com.ibm.springbootbasics.config;
+
+public class OptionalBean {
+    public OptionalBean() {
+        System.out.println("Optional Bean");
+    }
+}
+
+package com.ibm.springbootbasics.config;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class DependantBeanConfig {
+    @Bean
+    public OptionalBean optionalBean() {
+        return new OptionalBean();
+    }
+
+    @Bean
+    @ConditionalOnBean(OptionalBean.class)
+    //Create this bean(DependantBean only if OptionalBean is available,if not dont create)
+    public DependantBean dependantBean(){
+        return new DependantBean();
+    }
+}
+
+package com.ibm.springbootbasics.config;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ConditionalBean {
+    public static void main(String[] args) {
+        SpringApplication.run(ConditionalBean.class);
+    }
+}
+https://reflectoring.io/spring-boot-conditionals/
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										

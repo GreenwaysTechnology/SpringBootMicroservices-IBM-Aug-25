@@ -1338,10 +1338,7 @@ public class Customer {
 </beans>
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 									  Bean Life cycles
-........................................................................................................................................................................................................................................
-.....................................................................................
-			   Bean Life cycles
-....................................................................................
+..........................................................................................................................................................................................................................................
 
 init
 destroy
@@ -1411,7 +1408,7 @@ public class LifeCycleMain {
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 										Container Extension Points
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-			Typically, an application developer does not need to subclass  ApplicationContext implementation classes.
+			Typically, an application developer does not need to subclass  Application Context implementation classes.
 	 		Instead, the Spring IoC container can be extended by plugging in implementations of special integration interfaces. 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
@@ -2063,7 +2060,453 @@ public class ComponentMain {
     }
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+													Dependency Injection and Stereotypes
+...........................................................................................................................................................................................................................................
+
+beans.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--    Tells to the spring container scan all annotations; you dont need to configure each annotation Bean PostProcessor-->
+    <context:annotation-config/>
+<!--    Tells the spring to container scan packages and create beans automatically-->
+    <context:component-scan base-package="com.ibm.spring"/>
+<!--    <bean id="helloService" class="com.ibm.spring.core.beans.annotations.HelloService"/>-->
+</beans>
+
+package com.ibm.spring.core.annotations.streotypes;
+
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 
+@Component
+public class OrderService {
+
+    public List<String> findOrders(){
+        return  List.of("Product1","Product 2");
+    }
+}
+package com.ibm.spring.core.annotations.streotypes;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CustomerService {
+    @Autowired
+    private OrderService orderService;
+
+    public CustomerService() {
+    }
+
+    public CustomerService(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    public OrderService getOrderService() {
+        return orderService;
+    }
+
+    public void setOrderService(OrderService orderService) {
+        this.orderService = orderService;
+    }
+}
+
+package com.ibm.spring.core.annotations.streotypes;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class StreoTypesMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        CustomerService customerService = context.getBean(CustomerService.class);
+        System.out.println(customerService.getOrderService().findOrders());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&									DOMAIN Driven Design
+.........................................................................................................................................................................................................................................
+@Service:
+
+@Target(value=TYPE)
+ @Retention(value=RUNTIME)
+ @Documented
+ @Component
+public @interface Service
+
+Indicates that an annotated class is a "Service", originally defined by Domain-Driven Design (Evans, 2003) as "an operation offered as an interface that stands alone in the model, with no encapsulated state."
 
 
+@Repository:
+@Target(value=TYPE)
+ @Retention(value=RUNTIME)
+ @Documented
+ @Component
+public @interface Repository
+
+indicates that an annotated class is a "Repository", originally defined by Domain-Driven Design (Evans, 2003) as "a mechanism for encapsulating storage, retrieval, and search behavior which emulates a collection of objects".
+
+
+@Target(value=TYPE)
+ @Retention(value=RUNTIME)
+ @Documented
+ @Component
+public @interface Controller
+Indicates that an annotated class is a "Controller" (e.g. a web controller).
+
+eg:
+Service 
+package com.ibm.spring.core.beans.annotations;
+
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+//@Component
+@Service
+public class ProductService {
+
+    public List<String> getProducts() {
+        return List.of("p1", "p2", "p3");
+    }
+}
+package com.ibm.spring.core.beans.annotations;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+//@Component
+@Service
+public class OrderService {
+
+    @Autowired
+    private ProductService productService;
+
+    public List<String> getProducts() {
+        return productService.getProducts();
+    }
+}
+package com.ibm.spring.core.beans.annotations;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class OrderServiceMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        OrderService orderService = context.getBean(OrderService.class);
+        System.out.println(orderService.getProducts());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											 End of Xml Configuration
+..........................................................................................................................................................................................................................................
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--scanner for common Annotation -->
+    <context:annotation-config/>
+    <!--    Scanner for StreoType Annotations-->
+    <context:component-scan base-package="com.valtech.spring.beans.automation"/>
+</beans>
+
+.&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+						What if i want to remove this beans.xml itself
+									    Java Config
+.........................................................................................................................................................................................................................................
+
+
+What is Java Config?
+
+JavaConfig <=======> beans.xml
+  but it is pure java Program.
+
+Why Java config?
+  Java Config was introduced to remove XML,
+
+The XML is outside spring.
+Spring need to parse xml file and construct objects accordingly
+Which is heavy weight.
+Spring introduced new configuration system which is written in java itself.
+.....................................................................................
+
+Java Configuration:
+
+1.Bean declaration : @Component/@Service/@Repository/@Controller
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class Hello {
+    public String sayHello() {
+        return "Hello";
+    }
+}
+
+2.Configuration 
+  In old we wrote beans.xml
+  Now we dont need beans.xml
+
+Java Configuration:
+package com.ibm.spring.core.javaconfig;
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration  //beans
+public class AppConfig {
+
+    //<bean id="hello" class="com.ibm.spring.core.javaconfig.Hello"/>
+    @Bean
+    public Hello createHello() {
+        return new Hello();
+    }
+
+}
+
+Main: AnnotationConfigApplicationContext(AppConfig.class);
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class JavaConfigMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        Hello hello = context.getBean(Hello.class);
+        System.out.println(hello.sayHello());
+    }
+}
+.....................................................................................................................................................................................................................................,,
+									 Dependency Injection
+...........................................................................................................................................................................................................................................package com.ibm.spring.core.javaconfig;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderService {
+
+    @Autowired
+    private CustomerService customerService;
+
+    public String getCustomer() {
+        return customerService.getCustomer();
+    }
+}
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class CustomerService {
+
+    public String getCustomer() {
+        return "Customer!!!";
+    }
+}
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration  //beans
+public class AppConfig {
+
+    //<bean id="hello" class="com.ibm.spring.core.javaconfig.Hello"/>
+    @Bean
+    public Hello createHello() {
+        return new Hello();
+    }
+
+    @Bean
+    public CustomerService createCustomer() {
+        return new CustomerService();
+    }
+
+    @Bean
+    public OrderService createOrderService() {
+        return new OrderService();
+    }
+}
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class JavaConfigDependencyInjection {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        OrderService orderService = context.getBean(OrderService.class);
+        System.out.println(orderService.getCustomer());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Modularity and configuration
+....................................................................................................................................................................................................................................
+Instead of creating/mapping beans in one single place "AppConfig" going to be complex, we can break configurations into multiple configs, then latter we can combine into single config.
+
+modular definition files
+
+1.XML is so complex to maintain when app grows.
+   -In general we can have multiple configurations
+  like
+	projectname-dao.xml
+	cleartrip.dao.xml 
+        cleartrip.service.xml
+        cleartrip.entitis.xml
+	cleartrip.beans.xml
+via Program:
+ConfigurableApplicationContext context = ClassPathXmlApplicationContext("bank-app.xml","account-repo.xml");
+
+or
+ConfigurableApplicationContext context = new ClassPathXmlApplicationContext
+new String[] { "bank-app.xml", "account-repo.xml" });
+
+How to break the configuration in annotations?
+
+customer
+ @Configuration
+ class  CustomerConfig {
+   ///customer beans
+ }
+
+order
+@Configuration
+ class  OrderConfig {
+   ///customer beans
+ }
+accounts
+@Configuration
+ class  AccountsConfig {
+   ///customer beans
+ }
+............
+
+Eg:
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class HelloConfig {
+
+    @Bean
+    public  Hello createHello(){
+        return  new Hello();
+    }
+}
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class CustomerConfig {
+    @Bean
+    public  CustomerService createCustomerService(){
+        return  new CustomerService();
+    }
+}
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class OrderConfig {
+
+    @Bean
+    public OrderService createOrderService() {
+        return new OrderService();
+    }
+}
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+@Configuration  //beans
+@Import({HelloConfig.class, CustomerConfig.class, OrderConfig.class})
+public class AppConfig {}
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class JavaConfigDependencyInjection {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        OrderService orderService = context.getBean(OrderService.class);
+        System.out.println(orderService.getCustomer());
+    }
+}
+........................................................................................................................................................................................................................................
+								How to remove bean creations from the java config
+.......................................................................................................................................................................................................................................
+@Component-scan === beans.xml <context:component-scan base-package="com.ibm.spring">
+
+Note:
+ Please disable all any code which is written to create beans automatically.
+Note:
+ create new Project 
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class HelloService {
+    public String sayHello() {
+        return "Hello";
+    }
+}
+
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.annotation.ComponentScan;
+
+@ComponentScan(basePackages = "com.ibm.spring.core")
+public class AppConfig {
+
+}
+package com.ibm.spring.core.javaconfig;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class JavaConfigMain {
+    public static void main(String[] args) {
+        ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+        HelloService helloService = context.getBean(HelloService.class);
+        System.out.println(helloService.sayHello());
+    }
+}

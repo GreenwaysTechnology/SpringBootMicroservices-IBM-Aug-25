@@ -2920,4 +2920,733 @@ public class ConditionalBean {
 }
 https://reflectoring.io/spring-boot-conditionals/
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										
+										      Command Line Runner Interface
+........................................................................................................................................................................................................................................
+
+CommandLineRunner interface is used to initialize the some data during app start up,
+which is similar to "Life Cycle Hooks" in Bean...
+CommandLineRunner is not part of any bean, rather part of whole app.
+
+
+Use Cases:
+
+1.Data base mock data initialization
+
+Example:
+
+There are two ways
+
+1.Via interface implementations like traditional OO style
+2.via Functional programming..
+
+
+Interface Implementation:
+..........................
+
+1.Write a separate class and implement interface...
+package com.ibm.spring.boot.clr;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+
+@Component
+public class Initializer implements CommandLineRunner {
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("init...");
+    }
+}
+package com.ibm.spring.boot.clr;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class Main {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(com.ibm.spring.boot.SpringBootAppMain.class);
+    }
+}
+
+2.implement interface as part of main class.
+package com.ibm.spring.boot.clr;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class CLRMain implements CommandLineRunner {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(CLRMain.class);
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        System.out.println("new init");
+    }
+}
+....................................................................................
+	 Functional style - Using java 8 functional programming concepts
+....................................................................................
+Functional Style:
+package com.ibm.springbootbasics.config;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CommandLineInterfaceFunctionalStyle {
+    public static void main(String[] args) throws Exception {
+        var context = SpringApplication.run(CommandLineInterfaceFunctionalStyle.class);
+
+//        var r=new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//                System.out.println("something is initalized");
+//               System.out.println(args);
+//            }
+//        };
+//        r.run("hello , run");
+//        new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//                System.out.println("something is initalized");
+//                System.out.println(args);
+//            }
+//        }.run();
+        //r.run("hello , run");
+        ((CommandLineRunner) args1 -> {
+            System.out.println("something is initalized");
+            System.out.println(args1);
+        }).run();
+
+    }
+}
+
+.....................................................................................
+		Higher order function pattern-Return Function
+.....................................................................................
+package com.ibm.springbootbasics;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CommandLineInterfaceHOF {
+    public static void main(String[] args) {
+        var context = SpringApplication.run(CommandLineRunnerSeparate.class);
+        try {
+            runner().run("");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //separate method
+    public static CommandLineRunner runner() {
+//        return new CommandLineRunner() {
+//            @Override
+//            public void run(String... args) throws Exception {
+//                System.out.println("runner is initialized");
+//            }
+//        };
+        //lambda version
+        return args -> System.out.println("runner is initialized");
+    }
+}
+.....................................................................................
+	 CommandLineRunner interface ,functional Style,automated bean creations
+....................................................................................
+
+    public static CommandLineRunner runner() {
+
+        //lambda version
+        return args -> System.out.println("runner is initialized");
+    }
+
+      public static void main(String[] args) {
+        var context = SpringApplication.run(CommandLineRunnerSeparate.class);
+        try {
+            runner().run("");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+In the above pattern, run method need to be called...
+
+package com.ibm.springbootbasics;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.annotation.Bean;
+
+public class CommandLineRunnerBean {
+    public static void main(String[] args) {
+        var context = SpringApplication.run(CommandLineRunnerBean.class);
+
+    }
+
+    @Bean
+    public CommandLineRunner runner() {
+        return args -> System.out.println("Bean runner is initialized");
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									How to access application.properties 
+.......................................................................................................................................................................................................................................
+
+resources/application.properties
+
+In order to define properties, just add properties in application.properties
+
+Types of properties:
+
+1.Spring framework properties
+2.Application  specific properties 
+
+Properties synatx:
+
+propertyName.PropertyName = value..
+
+1.Spring framework properties
+
+spring.application.name=myapp
+
+2.Application properties
+
+users.name=Subramanian
+users.message=Hello
+
+eg:
+src/resources/application.properties
+spring.application.name=myapp
+
+users.name=Subramanian
+users.message=Hello
+
+package com.ibm.spring.boot.properties;
+
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Service
+public class UserService {
+
+    @Value("${users.name}")
+    private String userName;
+    @Value("${users.message}")
+    private String message;
+
+    public String sayHello() {
+        return message + " " + userName;
+    }
+}
+package com.ibm.spring.boot.properties;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class SimplePropertyMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context=SpringApplication.run(SimplePropertyMain.class);
+        UserService userService = context.getBean(UserService.class);
+        System.out.println(userService.sayHello());
+    }
+}
+.....................................................................................
+             Reading Properties via "Environment" Object
+....................................................................................
+
+package com.ibm.springbootbasics.properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+
+@Component
+public class Greeter {
+
+    @Value("${greeter.message}")
+    private String message;
+
+    @Value("${greeter.name}")
+    private String name;
+
+    @Autowired
+    private Environment environment;
+
+    public String getMessage() {
+        return message + name;
+    }
+
+    public String getInfo() {
+        return environment.getProperty("greeter.message", "Hey");
+    }
+}
+application.properties
+spring.application.name=springbootbasics
+
+#Custom application properties
+greeter.message=Hello
+greeter.name=Subramanian Murugan
+
+
+@Value vs Environment:
+......................
+
+@Value annotation is used to read value from application.properties ,if property does not , it will throw error.
+
+Environment is used to read value from application.properties, if property does not exits, we can provide default value.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										  Isolating properties into separate class inject Where ever you want
+															And
+												  How to read Nested Properties
+.........................................................................................................................................................................................................................................
+
+
+application.properties
+app.name=MyApp
+app.author=Ibm
+app.version=1.1.0
+app.type=webapp
+app.timout=3000
+
+#Nested Properties
+app.datasource.url=jdbc://mysql://localhost:3306/mydb
+app.datasource.username=root
+app.datasource.password=root 
+
+ConfigClass:
+package com.ibm.spring.boot.properties;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+@Component
+@ConfigurationProperties(prefix="app")
+public class ApplicationConfigProperties {
+    private String name;
+    private String author;
+
+    private String version;
+
+    private String type;
+    private String timeout;
+
+    public static class Datasource{
+        private String url;
+        private String username;
+
+        private String password;
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+    }
+    private   Datasource datasource;
+    public Datasource getDatasource() {
+        return datasource;
+    }
+    public void setDatasource(Datasource datasource) {
+        this.datasource = datasource;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(String timeout) {
+        this.timeout = timeout;
+    }
+    //Nested Properties Declaration
+
+}
+
+Service class:
+.......................
+package com.ibm.spring.boot.properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AppService {
+
+    @Autowired
+    private ApplicationConfigProperties properties;
+    public String getInfo(){
+        return  properties.getName() + " " + properties.getAuthor();
+    }
+    public String getDatasourceInfo(){
+        return properties.getDatasource().getUrl() + properties.getDatasource().getUsername();
+    }
+}
+.
+Main Class:
+package com.ibm.spring.boot.properties;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class ConfigServiceMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context=SpringApplication.run(ConfigServiceMain.class);
+        AppService appService = context.getBean(AppService.class);
+        System.out.println(appService.getInfo());
+        System.out.println(appService.getDatasourceInfo());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Reading Properties within Property file
+........................................................................................................................................................................................................................................
+
+application.properties
+spring.application.name=IBM Ecommerce
+#Custom application properties
+greeter.message=Hello
+greeter.name=Subramanian Murugan
+
+#property category
+app.name=${spring.application.name}
+app.author=Ibm
+app.version=1.1.0
+app.type=webapp
+
+
+package com.ibm.spring.boot.properties;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
+@Service
+public class SPELService {
+
+    @Autowired
+    private Environment environment;
+
+    public String getInfo(){
+        return  environment.getProperty("app.name","MyApp");
+    }
+}
+package com.ibm.spring.boot.properties;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+import javax.swing.plaf.synth.SynthOptionPaneUI;
+
+
+@SpringBootApplication
+public class SPELMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context= SpringApplication.run(SPELMain.class);
+        SPELService service =context.getBean(SPELService.class);
+        System.out.println(service.getInfo());
+
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Yaml - YML
+
+.properties - extension invented by SUN microsystem for java application configuration
+.tmp - windows config file
+.xml  - web configuration/andorid
+etc...
+
+.yml or yaml - it is modern configuration file format..
+ yaml is more popular in dev ops env- Kubernetes, ansible, cloud
+
+Spring supports yml file format.
+
+
+In projects you can mix and match or single format...
+
+application.yml or application.yaml
+
+How to read yaml properties?
+
+Using @Value annotation
+Using Environment
+Using @ConfigProperties
+
+resources/application.yml
+
+project:
+  name : SpringBoot
+  author: IBM
+
+
+package com.ibm.springbootbasics.yaml;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
+public class Project {
+
+    @Value("${project.name}")
+    private  String name;
+
+    public String getName(){
+        return  name;
+    }
+}
+package com.ibm.springbootbasics.yaml;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class YamlMain {
+    public static void main(String[] args) {
+        var context = SpringApplication.run(YamlMain.class);
+        var project = context.getBean(Project.class);
+        System.out.println(project.getName());
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									Can i Keep the yml file and properties file in the same project
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Yes , You can , but application.properties file properties overrides values in application.yml properties for the same property key
+
+resources/application.properties
+app.name=Google App
+
+resources/application.yml
+app:
+  name: IBM App
+  version: 1.0.0
+  greeting: "Hello From Yaml"
+
+package com.ibm.spring.boot.yml;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+@Service
+public class YAMLService
+{
+    @Value("${app.name}")
+     private String name;
+    public String getName(){
+        return  name;
+    }
+}
+
+package com.ibm.spring.boot.yml;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+@SpringBootApplication
+public class YamlMain {
+    public static void main(String[] args) {
+        ConfigurableApplicationContext context = SpringApplication.run(YamlMain.class);
+        System.out.println(context.getBean(YAMLService.class).getName());
+    }
+}
+
+output::
+google app
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+											Profiles and Configuration Properties
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Profiles:
+ Spring Profiles is way to manage environment specific  configurations (dev, prod, test, staging)
+
+Spring profiles let you load different application.properties or application.yml files per environment.
+
+resources/
+     application.properties | yml
+     application.dev.properties | yml
+    application.prod.properties | yml
+
+Inside file how to activate profiles
+
+spring.profiles.active = dev | prod
+
+spring:
+  profiles:
+	active: dev
+
+During runtime :
+   java -jar target/App.jar  --spring.profiles.active=prod
+
+Through Annotation
+
+@Configuration
+@Profile("dev")
+public class DevConfig {
+	//bean definition for development
+}
+
+In order test we create new project.
+
+ We are going to create project using spring initializer 
+.........................................................................................................................................................................................................................................
+										default profile - application.properties or yml
+
+default Profile:
+spring.application.name=springbootprofiles
+
+
+package com.ibm.spring;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class SpringbootprofilesApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringbootprofilesApplication.class, args);
+	}
+
+}
+
+After running:
+
+2025-07-31T11:56:43.973+05:30  INFO 27096 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Starting SpringbootprofilesApplication using Java 17.0.10 with PID 27096 (G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles\target\classes started by subu in G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles)
+2025-07-31T11:56:43.977+05:30  INFO 27096 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : No active profile set, falling back to 1 default profile: "default"
+2025-07-31T11:56:44.718+05:30  INFO 27096 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Started SpringbootprofilesApplication in 1.336 seconds (process running for 1.76)
+
+
+Setting/changing profiles:
+spring.application.name=springbootprofiles
+spring.profiles.active=dev
+
+2025-07-31T11:57:47.537+05:30  INFO 30036 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Starting SpringbootprofilesApplication using Java 17.0.10 with PID 30036 (G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles\target\classes started by subu in G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles)
+2025-07-31T11:57:47.541+05:30  INFO 30036 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : The following 1 profile is active: "dev"
+2025-07-31T11:57:48.272+05:30  INFO 30036 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Started SpringbootprofilesApplication in 1.333 seconds (process running for 1.778)
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 Read Properties in Production env
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+How to make your app for production?
+
+Dev Profile
+src/resources/application.properties -  default or you can change the profiles
+spring.application.name=springbootprofiles
+spring.profiles.active=dev
+app.name=Dev App
+
+Production Profile
+src/resources/application-prod.properties
+spring.application.name=springbootprofiles
+app.name=Production App
+
+mvn clean package
+
+How to switch the Profiles during runtime.
+
+G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles>java -jar target/springbootprofiles-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.4)
+
+2025-07-31T12:10:40.385+05:30  INFO 29032 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Starting SpringbootprofilesApplication v0.0.1-SNAPSHOT using Java 17.0.10 with PID 29032 (G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles\target\springbootprofiles-0.0.1-SNAPSHOT.jar started by subu in G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles)
+2025-07-31T12:10:40.390+05:30  INFO 29032 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : The following 1 profile is active: "dev"
+2025-07-31T12:10:41.163+05:30  INFO 29032 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Started SpringbootprofilesApplication in 1.57 seconds (process running for 2.124)
+Dev App
+
+
+
+G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles>java -jar target/springbootprofiles-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.4)
+
+2025-07-31T12:13:00.555+05:30  INFO 7872 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Starting SpringbootprofilesApplication v0.0.1-SNAPSHOT using Java 17.0.10 with PID 7872 (G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles\target\springbootprofiles-0.0.1-SNAPSHOT.jar started by subu in G:\IBM\2025\Aug\SpringBootAndMicroservices\springframework\springbootprofiles)
+2025-07-31T12:13:00.557+05:30  INFO 7872 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : The following 1 profile is active: "prod"
+2025-07-31T12:13:01.367+05:30  INFO 7872 --- [springbootprofiles] [           main] c.i.s.SpringbootprofilesApplication      : Started SpringbootprofilesApplication in 1.653 seconds (process running for 2.234)
+Production App
+
+Order of Execution:
+Load application.properties first
+  see that spring.profiles.active=dev
+	Then it loads application-dev-yml on top of that
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+

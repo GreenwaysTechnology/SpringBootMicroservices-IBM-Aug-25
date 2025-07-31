@@ -1,0 +1,4 @@
+app:
+  name: IBM App
+  version: 1.0.0
+  greeting: "Hello From Yaml"

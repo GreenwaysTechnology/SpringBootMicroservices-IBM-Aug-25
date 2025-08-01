@@ -44,15 +44,15 @@ S - State
    Data - Objects and Collections
 
 T- Transfer
-  Data is converted into any format which is user interested and transfer over http protocal.
+  Data is converted into any format which is user interested and transfer over http protocol.
 
 REST is  just specification which was released as part of http specification by co author of http protocol , Roy Fielding.
 
 https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
 
-....................................................................................
-				   REST Working Principles
-....................................................................................
+.......................................................................................................................................................................................................................................
+									   REST Working Principles
+......................................................................................................................................................................................................................................
 
 REST Works based on HTTP protocol and its semantic verbs
 
@@ -105,7 +105,7 @@ How to map url and map http verbs in spring?
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 In order to run web apps, we need web container.
-Spring boot brings embeded web container - tomcat by default.
+Spring boot brings embedded web container - tomcat by default.
 
 Spring boot web apps are packaged as "fat jar/uber jar" file.
 
@@ -119,7 +119,7 @@ Spring web app/REST APP Types:
 	 Spring module is "spring-web flux"
 
 ...........................................................................................................................................................................................................................................
-			 Spring boot Rest api development
+								 Spring boot Rest api development
 
 1.create project with following dependency(core)
  project can be created 
@@ -288,12 +288,594 @@ GET http://localhost:8080/api/hello
 Response:
 Hello
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										
+										Spring MVC
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+MVC stands for Model View Controller is popular design pattern to build web apps.
+
+M- Model - State-Data - Entity 
+V- Presentation - User Interface - In REST there is no UI Layer
+C- Controller - Object which handles incoming http request and send response 
+
+In Rest we have Model - data and C controller, what about biz logic
+
+Biz logic
+    -Fetching data from data sources, storing data into data sources
+
+Biz logic representation in Spring:
+
+1.Service Beans 
+2.Repository Beans
+
+Eg:
+package com.ibm.web.api.mvc.service;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class HelloService {
+
+    public String sayHello(){
+        return "Hello!";
+    }
+}
+
+package com.ibm.web.api.mvc;
+
+import com.ibm.web.api.mvc.service.HelloService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+public class HelloController {
+    @Autowired
+    private HelloService helloService;
+    @GetMapping
+    @RequestMapping("/hello")
+    public String sayHello() {
+        //call biz logic
+        return helloService.sayHello();
+    }
+}
+package com.ibm.web.api.mvc;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class MVCMain {
+    public static void main(String[] args) {
+        SpringApplication.run(MVCMain.class);
+    }
+}
+...............................................................................................................................................................................................................................				  								 How to read data from the user
+.................................................................................................................................................................................................................................
+
+How to pass input to the api?
+
+There are two ways to pass data to the rest api?
+
+1.As part of URL - Parameters
+2.As part of Body -Payload
+
+Parameters:
+       Passing data via  URL 
+	http://www.example.com/api/something/param
+	http://www.example.com/api/something ?param=paramvalue&anotherparam=anothervalue
+
+Parameter Types:
+
+1.Path Parameter
+2.Query Parameter
+3.Matrix Parameter - optional
+
+1.Path Parameter:
+   creating dynamic urls
+
+http://localhost:8080/products/1
+http://localhost:8080/products/2
+http://localhost:8080/products/3
+http://localhost:8080/products/4
+
+HTTP Request structure:
+
+Request contains two segments.
+
+1.Request Headers
+  Http Request header, meta information about on going request - sent by client to the server
+2.Request body
+  Data what we pass.
+
+Parameters vs Payload
+  Parameters and payload both are used to pass data to the server
+parameters are sent via url but payload is via body 
+
+eg:
+package com.ibm.restapp.parameters.path;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("products")
+public class ProductsController {
+
+    @GetMapping
+    public String findAll() {
+        return "products";
+    }
+
+    @GetMapping
+    @RequestMapping("{id}")
+    public String findById(@PathVariable("id") Long id) {
+        return "Product  " + id;
+    }
+}
+
+Testing:
+http://localhost:8080/products/10
+http://localhost:8080/products/1
+http://localhost:8080/products/13
+..........................................................................................................................................................................................................................................
+									Query Parameter/Query String
+........................................................................................................................................................................................................................................
+
+Passing more than one parameters
+
+Syntax:
+products/filter?category=food&pricegreterthan=100&pricelessthan=5
+
+category is variable
+food is value
+& is delimiter to separate out other variables.
+
+Here we have three variables
+category
+pricegreterthan
+pricesslessthan
+
+
+package com.ibm.restapp.parameters.path;
+
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("products")
+public class ProductsController {
+
+      @GetMapping
+    @RequestMapping("filter")
+    public String filter(@RequestParam("category") String category, @RequestParam("pricegreaterthan") Long pricegreterthan, @RequestParam("pricelessthan") Long pricelessthan) {
+        return category + pricegreterthan + pricelessthan;
+    }
+}
+
+
+Testing:
+http://localhost:8080/products/filter?category=food&pricegreaterthan=5&pricelessthan=100
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+									How to send payload to the server
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+RE -Representational State Transfer.
+ Sending data in the various format.
+
+Rest supports various data formats
+  -XML,JSON,Avro,protobuf,html,pdf,doc....
+
+Now  a days, JSON is most popular data format.
+
+How to send json from the client and how spring converts into java object?
+
+JSON:
+ java script object notation, is data format invented in 2000 for sending and receiving data from web and to web.
+JSON is plain text or ascii file , very light weight format.
+
+JSON Parser is program which converts string to object and object to string.
+
+JSON (string) To java -  string to object
+Java object to JSON(string) - object to string.
+
+Spring boot has in built json parser called "Jackson" parser.
+
+Use case: 
+ I am going to send product details as json, and inside spring boot we convert into product object.
+
+package com.ibm.restapp.parameters.path;
+
+import com.ibm.restapp.entity.Product;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("products")
+public class ProductsController {
+
+  
+    @PostMapping
+    public String create(@RequestBody Product product) {
+        System.out.println(product);
+        return "saved";
+    }
+
+    
+}
+
+Testing:
+
+POST /products
+
+{
+    "id": 21,
+    "name": "caret",
+    "qty": 100,
+    "category": "veg"
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&											 Return Types
+..........................................................................................................................................................................................................................................
+
+What we can return from api?
+
+There are many return types
+1.String
+2.Object- Collections or Object
+3.ResponseEntity
+4.void
+5.Reactive Types - Mono/Flux - Web Flux
+
+Based on Return type , content/type would be converted
+
+1.String - plain/text
+2.Object/Collection - application/json
+3.ResponseEntity -  plain/text or application/json
+4.void - only status code
+5.Reactive - application/json or any type
+
+
+Response:
+ The response can have two things.
+1.payload - Data which is returned
+2.Meta data-headers
+  Headers are just variables which hold some values which describe the nature of response.
+
+Response Headers:
+
+1.Content-Type
+
+Content-Type: text/html; charset=utf-8
+
+The MIME type of this content. What type of data server is sending to client.
+
+
+Response Headers:
+
+1.Content-Type
+
+Content-Type: text/html; charset=utf-8
+
+The MIME type of this content. What type of data server is sending to client.
+
+Basic content type of web is:
+
+  HTML
+  Plain/text
+
+Rest content type is :
+  
+  Representational State Transfer
+      |             |
+   Data Format     Data
+      |
+json
+xml
+pdf
+word
+etc...
+By Default in REST is "json"
+
+2.Content-Length
+
+Content-Length: 348
+
+The length of the response body expressed in 8-bit bytes
+
+3.Date
+Date: Tue, 15 Nov 1994 08:12:31 GMT
+
+The date and time that the message was sent (in “HTTP-date” format as defined by RFC 7231)
+
+4.keep-alive
+  It is header which talks how long the http connection can exits between server and client default is 60ms
+
+5.Connection
+Connection: close
+
+Control options for the current connection and list of hop-by-hop response fields. Deprecated in HTTP/2
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								Sending Status Code
+...........................................................................................................................................................................................................................................
+HTTP operation Status:
+
+-> informational response - 100 to 199-1X
+-> success response -  200-299-2X
+-> Redirects  - 300-399 -3X
+-> client errors - 400-499 -4X
+-> server errrors - 500-599 - 5X
+
+ "By default spring sends 200 status for all success request and response."
+
+
+What if i want to send some special status code?
+
+According to Rest , Post method must return 201.
+
+"By default spring sends 200 status for all success request and response."
+
+What if i want to send some special status code?
+
+According to Rest , Post method must return 201.
+
+How to add StatusCode in the Response?
+
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public String create(@RequestBody Product product) {
+        System.out.println(product);
+        return "saved";
+    }
+....................................................................................
+				String
+....................................................................................
+
+    @GetMapping
+    public String findAll() {
+        return "products";
+    }
+
+ content-type:
+  text/plain
+......................................................................................................................................................................................................................................
+								Objects and Collections
+...................................................................................................................................................................................................................................
+.....................................................................................
+				Objects and Collections
+....................................................................................
+package com.ibm.restapp.response;
+
+import com.ibm.restapp.entity.Customer;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("customers")
+public class Customers {
+
+    @GetMapping
+    public List<Customer> findAll() {
+        List<Customer> customers = List.of(
+                new Customer(1, "Subramanian", "Coimbatore"),
+                new Customer(2, "Murugan", "Coimbatore"),
+                new Customer(3, "Karthik", "Chennai")
+
+        );
+        return customers;
+    }
+}
+...................................................................................
+                      How to return single Customer(Object)
+
+package com.ibm.restapp.response;
+
+import com.ibm.restapp.entity.Customer;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("customers")
+public class Customers {
+
+    List<Customer> customers;
+
+    @Bean
+    public CommandLineRunner commandLineRunner() {
+        return (arg) -> {
+            customers = List.of(
+                    new Customer(1, "Subramanian", "Coimbatore"),
+                    new Customer(2, "Murugan", "Coimbatore"),
+                    new Customer(3, "Karthik", "Chennai"),
+                    new Customer(4, "Ram", "Delhi")
+            );
+        };
+    }
 
 
 
+    @GetMapping
+    public List<Customer> findAll() {
+        return customers;
+    }
+
+    @GetMapping
+    @RequestMapping("single")
+    public Customer findBySingleCustomer() {
+        return  new Customer(1,"Subramanian","Coimbatore");
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+							
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										CURD 
+...................................................................................................................................................................................................................................
+
+CREATE
+UPDATE
+READ 
+DELETE
+
+I am going to implement CURD Using In Memory data , without any database.
 
 
+Entity:
+package com.ibm.curd.entity;
+
+public class Product {
+    private Long id;
+    private String name;
+    private double price;
+
+    public Product() {
+    }
+
+    public Product(Long id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+
+Service:
+package com.ibm.curd.service;
+
+import com.ibm.curd.entity.Product;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class ProductService {
+    //Inmemory database via Map
+    private final Map<Long, Product> productMap = new HashMap<>();
+    private long idCounter = 1;
+
+    //findAll Products
+    public List<Product> findAll() {
+        return new ArrayList<>(productMap.values());
+    }
+
+    public Product findById(Long id) {
+        return productMap.get(id);
+    }
+
+    public Product create(Product product) {
+        product.setId(idCounter++);
+        productMap.put(product.getId(), product);
+        return product;
+    }
+
+    public Product update(Long id, Product product) {
+        Product existingProduct = productMap.get(id);
+        if (existingProduct != null) {
+            existingProduct.setName(product.getName());
+            existingProduct.setPrice(product.getPrice());
+        }
+        return existingProduct;
+    }
+
+    public boolean deleteProduct(Long id) {
+        return productMap.remove(id) != null;
+    }
+
+}
+package com.ibm.curd.controller;
+
+import com.ibm.curd.entity.Product;
+import com.ibm.curd.service.ProductService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductService productService;
+
+    @GetMapping
+    public List<Product> findAll() {
+        List<Product> products = productService.findAll();
+        System.out.println(products);
+        return  products;
+    }
+
+    @GetMapping
+    @RequestMapping("filter")
+    public List<Product> filterByName(@RequestParam("name") String name) {
+        List<Product> products = productService.getProductsByName(name);
+        System.out.println(products);
+        return products;
+    }
+
+    @GetMapping
+    @RequestMapping("{id}")
+    public Product findById(@PathVariable("id") Long id) {
+        Product product = productService.findById(id);
+        System.out.println(product);
+        return product;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Product save(@RequestBody Product product) {
+        Product newProduct = productService.create(product);
+        System.out.println(newProduct);
+        return newProduct;
+    }
+
+    @PutMapping("{id}")
+    public Product update(@PathVariable Long id, @RequestBody Product product) {
+        Product updatedProduct = productService.update(id, product);
+        System.out.println(updatedProduct);
+        return updatedProduct;
+    }
+
+    @DeleteMapping("{id}")
+    public String delete(@PathVariable Long id) {
+        return productService.deleteProduct(id) ? "Deleted" : "Not Found";
+    }
+}
 
 
 

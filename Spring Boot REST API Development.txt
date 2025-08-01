@@ -420,6 +420,26 @@ Testing:
 http://localhost:8080/products/10
 http://localhost:8080/products/1
 http://localhost:8080/products/13
+
+.....................................................................................
+			  Hot Reloading/Live Reloading feature
+.....................................................................................
+
+Without restarting the server manually every time, when ever code changes, the feature we can add called "hot reloading" through which we can restart the server automatically.
+
+How to enable live reloading?
+
+pom.xml
+<dependency>
+ <groupId>org.springframework.boot</groupId>
+ <artifactId>spring-boot-devtools</artifactId>
+ <optional>true</optional>
+</dependency>
+
+if you are working in IntelliJ Idea,
+ you have to do some settings
+File--->settings--compiler-->Build Project automatically
+File---settings-Advanced Settings--->Allow auto make to start even if developed is currently running
 ..........................................................................................................................................................................................................................................
 									Query Parameter/Query String
 ........................................................................................................................................................................................................................................
@@ -876,7 +896,8 @@ public class ProductController {
         return productService.deleteProduct(id) ? "Deleted" : "Not Found";
     }
 }
-
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			
 
 
 

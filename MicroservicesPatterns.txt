@@ -1,0 +1,746 @@
+				 Microservices
+.....................................................................................
+
+Application(software system) Development patterns:
+.................................................
+
+Network based Applications - Distributed Application
+
+Application has layers:
+
+1.User interface layer
+2.Application biz layer
+3.Data Layer /Repository layer
+
+History of Architecture of Distributed Application
+
+Distributed means, application is broken into multiple parts and each part put into multiple hosts/machines, connect those via network.
+
+1.Mainframework based distributed
+
+   1.Application biz layer
+   2.Data Layer /Repository layer
+ Where as User interface layer is kept in dump terminals connected to main frames.
+
+Drawbacks:
+1.Too costly
+2.scalability is too difficult.
+
+Advantage:
+1.High security
+2.Centeralized management.
+
+2.Client Server Architecture
+
+2.1.Main framework based client -server , where as mainframe acts as server and digital computers act as clients.
+ 
+2.2.Digital computer based client - server architecture
+   Servers and clients are digital computers
+
+Based on this we can classify the applications  layered /tiered concept
+
+
+1.single tier/layer
+   client,server,database every is kept in one single machine...
+2.two tier/layer
+  user interface is kept in client machine,
+  data logic and biz logic is kept in server machine
+ both machines are connected via networks
+
+          "This arch based on LAN /WAN"
+
+3.three tier /layer
+
+ This arch based on "internet network" and web computing
+
+   client - client machine
+   server - biz logic is kept inside another machine
+   database - is kept inside another machine
+
+ Client is browser
+ Server BIZ logic is kept as "web Applications"
+ Database is accessed by "Server side technologies - J2EE,ASP/.net,PHP,....
+
+4.N-tier / layer
+
+ Client is browser
+ Server BIZ logic is kept as "web Applications"
+   -Again spilt into multi layered
+ Database is accessed by "Server side technologies - J2EE,ASP/.net,PHP,....
+
+ In 2000 , J2EE introduced n-tier client server  
+
+  browser -------web application(servlets/jsp)----EJB----Messaging/Databases(JMS/JDBC/Middle wares)
+
+ Spring based N-tier client server arch:
+
+  browser -------web application(spring mvc)---Spring services----Spring data----Messaging/Databases(JMS/JDBC/Middlewares)
+..........................................................................................................................................................................................................................................
+								    How to build N-tier distributed Applications
+.........................................................................................................................................................................................................................................
+
+Steps/Process:
+
+1.Domain Modeling
+
+  Banking, Online Food Delivery App, Ecommerce Domain
+
+2.Select technology
+
+   if your app is based on web and internet.
+  Steps:
+   1. Database -  Oracle 
+   2. MOM - RabbitMQ,IBM MQ,Microsoft MQ 
+   3. Development Technology
+       Java/JEE  - Why you go with specific implementation technologies?
+      .Net
+       Php
+
+3.Development and release methodology
+   Waterfall -  traditional dev , release
+
+Any domain consist of various modules
+ -Accounts
+ -Loans
+ -Customers
+ -Card
+etc.....
+ 
+4.Testing
+   Once the development is over, the app is going to be under testing
+
+5.Production
+   Once the app is tested fully, ready for production.
+
+6.Maintance
+   Once the app in the production, it goes on maintaince  ...
+
+					if any app is built based on the above methodology, which is called as "Monolithic"
+....................................................................................................................................................................................................................................
+			Companies like amazon ,Microsoft, Google ,LinkedIn proposed new model to build distributed client server applications.
+													  Microservices
+...........................................................................................................................................................................................................................................
+New way of building apps
+
+1.Automatation is key concept 
+
+   From analysis , dev ,test, release, prod,  to maintaince 
+
+Agile :(Requirement Analysis)
+
+      Agile is an iterative approach to project management and software development that helps teams deliver value to their customers faster and with fewer headaches. Instead of betting everything on a "big bang" launch, an agile team delivers work in small, but consumable, increments
+
+							Breaks the application into smaller and smaller
+ - fast delivery with quality on time.
+
+Requirements are highly dynamic, cant be freezed, since it is dynamic start development, test ,release, deploy periodically.
+
+
+We need automation, through which  automatically only we can achieve fast delivery -
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+				 In order to automate, a new technology was created "Dev Ops" - Dev + Operations together.
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Distributed source code repo - git - CI
+
+Pipe lines tools  - 
+   Jenkins -(Continuous Integration)
+
+Requirement---> Dev---push the code to source code repo---|CI Tool---Compile--Build/pack--Testing-Deployment(CD)
+
+Every thing is here Continuous happens
+
+Continuous Req Analysis
+Continuous Dev 
+Continuous release /build
+Continuous test
+Continuous release /build
+Continuous deployment
+Continuous tracing and monitoring
+
+This process applied on every module in the applications
+
+OrderManagement 
+   Continuous Req Analysis, Dev ,release, test, deployment, tracing ,monitoring
+
+CustomerManagement 
+   Continuous Req Analysis ,Dev ,release, test,deployment,tracing,monitoring
+
+if any app is built based on the above methodology, that application is called as   "Microservice"
+.......................................................................................................................................................................................................................................
+						     How to convert existing monolithic apps into microservices
+....................................................................................................................................................................................................................................
+
+Scaling means expanding either software or hardware resources..
+if you scale software- horizontal
+if you scale hardware -vertical 
+
+Why Scale Cube?
+
+Increase performance
+Make you app highly available..
+
+X,Z => Scale instance of your app
+
+X- based on Built in routing algorithms
+Z- Custom routing algorithms
+
+Assume that your app is already running in production ,based on Monolithic model,
+You have applied X scaling, that means your monolith app is running multiple instances.
+
+Next step, you got assignment, you have to convert existing application(monolithic) into microservices?
+
+How to begin?
+ Apply scale cube pattern........ Y scaling 
+
+
+Y-Axis scaling talks about how to spilt the existing monolith  application into micro services based on "functionals aspects" - Service
+......................................................................................................................................................................................................................................
+								  Service
+..............................................................................................................................................................................................................................
+
+ A Service is a "mini application" that implements narrowly focused functionality.
+
+Such as orderManagement ,customer Management, and so on....
+
+Some services are scaled based on "X-axis" and some services are "Z-scaling".
+
+Your App
+   -Y scaling
+       -X or Z scaling....
+
+The high level definition of microservices architecture(microservices) is an architectural style that "functionally decomposes an application into set of services(mini application)"
+
+	In Monolith app the app is broken into "modules" where as microservice break as services(mini application)..
+
+
+What Microservices offers?
+
+1.Microservices offers "form of modularity"
+2.Each service has its own database - Customer Service may use "Mongodb'
+  where as payment service may use "Oracle database"
+
+Benefits of the microservice architecture
+
+ It enables the continuous delivery and deployment of large, complex applications.
+ Services are small and easily maintained.
+ Services are independently deployable.
+ Services are independently scalable.
+ The microservice architecture enables teams to be autonomous.
+ It allows easy experimenting and adoption of new technologies.
+ It has better fault isolation
+
+.........................................................................................................................................................................................................................................
+									How to design and implement microservices
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+The microservices is all about practices followed, implemented, and tested in real time production grade applications in various companies like amazon,netflix,google,microsoft.
+
+The many community people joined  together who formed the pattern language in order to begin development of Microservices - Microservice pattern language, design patterns
+.....................................................................................................................................................................................................................................
+Decision Pointers when start building app
+
+Step : 0 - May be for new Application(new Requirement) or existing Application
+			
+Requirement for building online food delivery:
+	
+1.You are developing a server-side enterprise application.
+
+2.It must support a variety of different clients including desktop browsers, mobile browsers and native mobile applications. 
+
+3.The application might also expose an API for 3rd parties to consume.
+
+4.It might also integrate with other applications via either web services or a message broker.
+
+5.The application handles requests (HTTP requests and messages) by executing business logic; accessing a database; exchanging messages with other systems; and returning a HTML/JSON/XML response. 
+
+6.There are logical components corresponding to different functional areas of the application.	
+.........................................................................................................................................................................................................................................
+								  Pattern Languages
+.....................................................................................................................................................................................................................................
+
+Pattern is a reusable solution to  a problem that occurs in a particular context.
+
+	Christopher Alexander writings inspired the software community to adopt the concept of patterns and patterns language
+
+		 The book Design patterns: Elements of Reusable Object oriented Software - GOF patterns.
+
+
+Elements of patterns.
+
+Every Pattern has sections
+
+1.Forces
+2.Result Context
+3.Related patterns
+
+
+Forces: The issues that you must address when  solving a problem.
+
+ The forces section of a pattern describes the forces(issues) that you must address when solving a problem in a given context.
+
+Sometimes forces can conflict, so it might not be possible to solve all of them.
+
+Which issues(forces) are more important dependents on the context.
+
+eg:
+
+When you write code in a reactive style , has better performance than non reactive sync code.
+But it more difficult to understand.
+
+Resulting Context:
+..................
+ The force section of a pattern describes issues(forces) that must address when a solving a problem in a given context.
+
+The result context section of a pattern describes the consequences(advantages and disadvantages) of applying the pattern.
+
+It consists of three parts
+
+1.Benefits: 
+   The benefits of the pattern, including the forces that have been resolved.
+2.Drawbacks:
+   The drawbacks of the pattern, including, un resolved forces.
+3.Issues
+    The new Problems that have been introduced by applying the pattern.
+
+The resulting context provides a more complete and less biased view of the solution
+which enables better decisions.
+
+Related Patterns:
+ The related patterns describe the relationship between the pattern and other patterns.
+........................................................................................................................................................................................................................................
+										Pattern Relationship
+.......................................................................................................................................................................................................................................
+
+There are five types of relationship between patterns.
+
+Predecessor – a predecessor pattern is a pattern that motivates the need for this pattern. 
+	For example, the Microservice Architecture pattern is the predecessor to the rest of the patterns in the pattern language except the monolithic architecture pattern
+if i have selected microservice, then only i can think about other patterns of microservice else i cant.
+
+
+Successor – a pattern that solves an issue that is introduced by this pattern. 
+For example, if you apply the Microservice Architecture pattern you must then apply numerous successor patterns including service discovery patterns and the Circuit Breaker pattern.
+
+
+Alternative – a pattern that provides an alternative solution to this pattern. For example, the Monolithic Architecture pattern and the Microservice Architecture pattern are alternative ways of architecting an application. You pick one or the other.
+
+Generalization: - A Pattern that is a general solution to a problem for eg if you want to host a service , we have different implementations like single service per host pattern, single service on multiple hosting etc...
+
+Specialization: - A specialized form of  a particular pattern -  For eg deploy a service as container pattern is specialization of a single service per host.
+
+.......................................................................................................................................................................................................................................
+		   							Microservice architecture pattern language
+................................................................................... .................................................................................................................................................. 
+The Microservice pattern language is a collection of patterns that help you architect an application using the microservice architectures.
+
+Infrastructure Patterns:
+  Theses solves problems that are mostly infrastructure issues outside of development.
+
+Application patterns:
+  These are for related to development
+
+Application Infrastructure:
+   Application related infrastructures like containers
+...........................................................................................................................................................................................................................................
+						Patterns for Decomposing an Application into services	
+
+
+1.Decompose by business capability 
+	 |
+	 |
+2.Decompose by subdomain
+
+3.SelfContained Service
+
+4.Service Per Team
+
+
+.....................................................................................
+			    Design patterns in Microservices
+....................................................................................
+
+Application Architecture Pattern
+   For building n-tier client server distributed application.
+
+-Monolithic architecture
+-Microservice architecture
+
+Decomposition Pattern -Y scalling
+
+1.Decompose by business capability 	 
+2.Decompose by subdomain
+3.SelfContained Service
+4.Service Per Team
+
+
+MicroService Architecture Pattern------>Depcompostion Pattern
+
+Decompose by business capability 
+
+If you are going to build online store.
+
+Business capability:
+Product Catalog Management
+Inventory Management
+Order Management
+Delivery Management.
+
+Alternate Pattern
+Decompose by SubDomain:
+  Decompose the problem based on DDD principles.
+
+....................................................................................
+				Data Management
+....................................................................................
+
+Core Pattern:
+1.Database Per Service Pattern
+
+2.Shared Database
+
+
+Note:
+  if you take any data related patterns, "Transactions" are very important.
+
+
+1.Database Per Service Pattern leads/succeeds other patterns -Predecssor pattern
+
+Succssor Patterns
+  Domain Event ---->
+                   | ---alternate pattern
+  Event Sourcing -->
+  Saga - Transaction - INSERT,UPDATE,DELETE
+  CQRS - SELECT, INSERT,UPDATE,DELETE.
+  API Composition
+
+Advanced Data Management Pattern -Transactional Messaging Pattern   
+
+1.Transactional outbox
+    2.Transactional log tailing
+     or
+    3.Polling publisher
+
+   2.1.Idemponent Consumer
+
+.....................................................................................
+			Communication Style Patterns
+...................................................................................
+
+Service = Mini Application
+
+MiniApplication = Collection of Programs
+
+Collection of programs in Java = Collections of classes
+
+Collections of classes = Collections Objects.
+
+Object/Class = Collection of  state and behaviour
+
+State = data
+Behaviour=methods
+
+Object = methods
+
+methods = API
+
+API will DO three things
+
+1.write - update,remove,insert
+2.read
+3.process
+
+class OrderService {
+
+   @Autowrited
+   private OrderRepository orderRepo;
+   //API
+   public List<Order> findAll(){
+	orderRepo.findAll()
+   }
+ 
+}
+
+Types of API:
+1.local api
+   api which are called with in same runtime by other apis
+2.remote api
+  api which are called outside runtime via networks 
+
+How to build remote api?
+
+ Based on protocals
+
+1.HTTP Protocal.
+
+ if you design your api based on HTTP protcal, those apis are called as "WebServices"
+
+Web Service:
+  RESTFull WebServices,SOAP WebServices
+
+REST API = Program
+
+In java => classes
+
+In Web Services classes are called "End Points"
+
+In Micro services -Services can be  represented as "WebServices"
+
+Rest WebService------>http-----RestWebservice => HTTP based Microservice
+
+Rest WebService------>http-----Graphql => HTTP based Microservice
+
+Rest WebService------>http/2 over tcp------GRpc Service=> TCP based Microservice
+
+Rest Web Service ---->TCP/MOM-------------->Messaging Service -Middlewares
+
+Communication Sytle patterns:
+
+1.RPI patterns
+   REST,gRPC,Apache Thrift - RPI implementations
+2.Messaging
+   Any Messaging middlewares - RabbitMQ,IBM MQ,MicroSoft MQ - MQTT,AMQP
+   Streaming platforms - Apache Kafka,Confluent Kafka
+   2.1.Idemponent Consumer
+
+3.Domain Specfic Protocal
+   SMTP - Mail Service   
+
+.....................................................................................
+			   Deployment Patterns
+.....................................................................................
+
+Once the services(applications) are ready, we can move the application into production.
+
+Production Related Patterns:
+
+Deployment Environment/Plattforms
+
+1.Bare Metal 
+    Where as physical hardware, and operating system, Where we can provision our application.
+    If you deploy java application.
+
+  OS: Linux
+  JRE- 17
+  WebContainer -Tomcat
+  Databases -MySql
+  Streaming Platforms-Kafka
+   
+2.Virutal Machine 
+   Oracle Virtual box 
+    on VM , you can install os-linux
+  JRE- 17
+   WebContainer -Tomcat
+   Databases -MySql
+   Streaming Platforms-Kafka
+
+3.Containerized Deployment
+    It is lightweight vm - Docker and Kubernets
+   JRE- 17
+   WebContainer -Tomcat
+   Databases -MySql
+   Streaming Platforms-Kafka
+  
+4.Cloud 
+   ->VM /container/bare 
+  you can just deploy your app only,
+  cloud may give you all softwares for you...
+
+
+  "Cloud with containers are most preferable deployment for microservices"
+
+Design patterns:
+
+Bare Metal:
+ 1.Multiple services instances per host
+ 2.Service instance per host
+VM
+ 1.Service instance Per VM
+Container
+ 1.Service instance per Container
+Cloud
+ 1.server less deployment
+ 2.Service deployment platform
+ 3.container and cloud
+
+			      
+		if your app deployement is in container 
+				  or 
+    			       in cloud
+				  or 
+			   Container with cloud
+				 or 
+			   in any Virtualized Env
+
+if any micro service(application) is running in containerized env like kubernets(docker).
+
+Challanges:
+ 1.suppose the application is accessed by other application or external application
+   we need to communicate the application with help of "host:port".
+ if application is running Virtualized env, "host and port" is not static,it would be dynamic.
+
+ if it is dynamic then how other microservices, and external application, how they can communicate.
+			
+To solve the problem of identifying the services which are running in Virtualized env
+.....................................................................................
+			Advanced Communication Patterns
+			(Service Registry and Discovery)
+
+
+When we apply this pattern, services never communicate "directly", because they dont know each other due to "dynamic location",so they use broker to communicate, broker will have all service information-Service Registry
+
+Service Registry Patterns:
+
+1.Client side service Discovery
+2.Server-side service Discovery
+   ->Service Registry
+  	->Self Registration
+   	->ThridParty Registration
+
+.....................................................................................
+                     Services are running in Virtualized Env
+		     Services are talking via Service Registry
+		What if i any service is down / Slow / Throwing Exception
+					
+Microservices provides a Design patterns to handle failures and slow calls
+			 Service Reliablity Patterns
+
+1.Timeout Pattern
+2.Bulk Head Pattern
+3.Retry Pattern
+4.Circuit Breaker Patterns
+.....................................................................................
+		Application Infrasturcture patterns   -cross cutting concerings
+...................................................................................
+                      Configuration Data and Its patterns
+
+Every application which requires configuration data,the configuration data may be connection strings,api tokens,application settings etc...
+
+In Java application, configuration data is kept inside properties or yml files...
+
+What if in micro serivces, the configuration is need to be shared across the application?
+
+We have design pattern to centeralize configuration data/information.
+
+1.Microservice Chassis
+   distributed/externalized configuration
+   security
+   logging
+   tracing
+   metrics
+2.Service Templates
+3.Externalized COnfiguration
+.....................................................................................
+.....................................................................................
+		   Micro services are ready in production
+			Now we need to expose to
+		 other Applications- User interface applications
+
+Microservices provide you a design pattern, called
+
+External API patterns:
+
+1.API Gate ways
+  2.Back End for FrontEnd
+
+.....................................................................................
+		     Micro services are ready in production
+		We have exposed our microservices via API Gateways
+			  How to secure them?
+
+Security Patterns
+
+1.Access Tokens
+   -Authentecation
+   -Authrozation
+   -SSL
+   -Policies
+....................................................................................
+....................................................................................
+			Now your Micro service is in Production
+				Next what should i do
+			     Your App in Maintaince 
+
+Monitor Your apps......
+
+Observablity Design patterns:
+
+1.Log Management/Aggregation Pattern
+2.Application Metrics Pattern
+3.Audit Logging pattern
+4.Distributed Tracing
+5.Exception Tracker Pattern
+6.Health Check API pattern
+
+.....................................................................................
+								Microservices Implementations
+....................................................................................
+
+Microservice is architecture that proposes many design patterns and principles, it is language and platform independant.
+
+Java Microservices:
+..................
+ Java technology provides various microservices pattern implementations.
+
+
+Spring boot
+   Spring configuration system.
+
+ Spring app can be configured
+  1.XML - Legacy way of configuration.
+  2.Java Config
+   2.1.Manual Java Config
+   2.2.Auto Java Config
+        -Spring Boot
+
+1.Spring Cloud
+   It is  a project(module) brought into spring framework echo system
+  to build microservices,
+   Spring cloud has implemented most of the design patterns
+
+2.Quarkus
+
+3.Eclplise Vertx
+
+4.AKKA with Microservices/Play
+
+5.Micronaut
+
+....................................................................................
+			Spring Cloud and implementations
+...................................................................................
+
+if you are new spring echo system(old spring,spring boot),First you need to learn spring(core,web,data).
+
+
+Micro service Application arch in Spring:
+..........................................
+
+
+	   Spring cloud Config  Spring Cloud CircuitBreaker Spring Cloud Discovery ..
+
+		|                     |                       |
+
+	         (Microservice Pattern language implementations)  			    
+.....................................................................................
+			       Spring Cloud		
+				    |		  		 	                       .................................................
+		  Spring Core,Spring Web,Spring Data - API Development
+				   |
+				Spring Boot
+			           |
+			     Spring Framework
+
+.....................................................................................
+.....................................................................................
+
+Steps:
+
+1.Understanding REST API(Could be any api-graphql,grpc,MoM) development ,with data sources(mysql,postresql,nosql databases)
+
+2.Pick up design pattern.
+.....................................................................................
+
+
+
+

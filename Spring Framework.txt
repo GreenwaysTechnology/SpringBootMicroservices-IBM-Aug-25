@@ -3110,7 +3110,7 @@ Types of properties:
 1.Spring framework properties
 2.Application  specific properties 
 
-Properties synatx:
+Properties syntax:
 
 propertyName.PropertyName = value..
 
@@ -3162,9 +3162,9 @@ public class SimplePropertyMain {
         System.out.println(userService.sayHello());
     }
 }
-.....................................................................................
-             Reading Properties via "Environment" Object
-....................................................................................
+..........................................................................................................................................................................................................................................
+    									         Reading Properties via "Environment" Object
+.........................................................................................................................................................................................................................................
 
 package com.ibm.springbootbasics.properties;
 

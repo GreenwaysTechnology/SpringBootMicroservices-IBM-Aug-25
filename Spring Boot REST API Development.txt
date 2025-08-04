@@ -897,8 +897,492 @@ public class ProductController {
     }
 }
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-			
+										     Response Entity
+........................................................................................................................................................................................................................................
+What if i want to send data with custom headers? and custom status code.
 
+ReponseEntity is Object, used to encapuslate meta data.
+
+..................................................................................
+		     Response Entity
+...................................................................................
+
+What if i want to send data with custom headers? and custom status code.
+
+ReponseEnity is Object, used to encapuslate meta data.
+
+package com.ibm.restapp.response;
+
+import com.ibm.restapp.entity.Customer;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("customers")
+public class Customers {
+
+    List<Customer> customers;
+
+    @Bean
+    public CommandLineRunner commandLineRunner() {
+        return (arg) -> {
+            customers = List.of(
+                    new Customer(1, "Subramanian", "Coimbatore"),
+                    new Customer(2, "Murugan", "Coimbatore"),
+                    new Customer(3, "Karthik", "Chennai"),
+                    new Customer(4, "Ram", "Delhi")
+            );
+        };
+    }
+
+
+//    @PostMapping
+////    @ResponseStatus(HttpStatus.CREATED)
+//    public Customer create(@RequestBody Customer customer) {
+//        return customer;
+//    }
+
+    @PostMapping
+    public ResponseEntity<Customer> create(@RequestBody Customer customer) {
+        return ResponseEntity.status(201)
+                .header("name", "IBM")
+                .header("location", "Bangalore")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(customer);
+    }
+
+    @GetMapping
+    public List<Customer> findAll() {
+        return customers;
+    }
+
+    @GetMapping
+    @RequestMapping("single")
+    public Customer findBySingleCustomer() {
+        return new Customer(1, "Subramanian", "Coimbatore");
+    }
+}
+.....................................................................................
+			void -Return
+...................................................................................
+
+void return type does not say to return data, rather return status code.
+
+package com.ibm.restapp.response;
+
+import com.ibm.restapp.entity.Customer;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("customers")
+public class Customers {
+
+    @DeleteMapping
+    @RequestMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable("id") Long id) {
+        System.out.println("deleting by id : " + id);
+    }
+
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										 Reactive Type
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Blocking programming 
+nonblocking programming
+.........................................................................................................................................................................................................................................
+							Traditional web (Blocking)  vs Reactive/ Non Blocking  web application
+....................................................................................................................................................................................................................................
+What is Reactive Programming?
+
+      Reactive programming is kind of declarative programming, by combing many design patterns (Observer able ,Iterable ,functional programming   concepts-pure function)
+
+
+Why reactive programming? or What is purpose of reactive programming?
+
+ Reactive programming helps to transfer data within application or across application
+ in async way.
+The reactive-stack web framework, Spring WebFlux, has been added to Spring 5. It is fully non-blocking, supports reactive streams back pressure, and runs on such servers as Netty, Undertow, and Servlet 3.1+ containers.
+
+Reactive Stack:
+
+ Reactive is new programming model, helps to build non blocking / async applications.
+ 
+
+Traditional web vs Reactive/NonBlocking  web application:
+.........................................................
+
+How we use threads,thats where the difference.
+
+In traditional web applications, every request is mapped against a separate dedicated thread - this is called as "Request Per thread Model"
+
+for eg in 1ms , the webserver recieves 100 requests, the web server will have 100 threads.
+
+Request Per thread model drawbacks:
+
+1.Operating system need to maintain so much threads, so that os need more memory, and also operating system need to do context switch a lot, so cpu power is used heavily..
+
+How to manange this?
+
+ We need less threads, thats where new technology was created called "non blocking and async"
+
+Non blocking arch brought  new threading model, where as having limited no of threads, we can achive maximum concurrency...
+
+Threads are reused by multiple request--response handling.
+........................................................................................................................................................................................................................................
+							Spring and Nonblocking arch
+....................................................................................................................................................................................................................................
+
+Webflux is framework built on the top of "Project reactor", which is spring wrapper..
+
+WebFlux provides a feature to build async and non blocking apps.
+
+Webflux web server is not tomcat, rather we use "netty" server which is non blocking server..
+
+
+How to create non blocking/ webflux apps?
+
+Note:
+ you cant mix blocking and nonblocking dependencies in a single project...
+
+Web Flux/Project reactor provides 2 objects:
+
+1.Flux<T>
+  Using flux we can emit 0..N elements
+
+2.Mono<T>
+  Using Mono we can emit at most single element.
+
+publisher - publishes events
+
+
+events
+ 1.data event -onNext
+ 2.error event -onError
+ 3.complete event -onComplete
+
+Mono /Flux - Publisher type
+ Mono publishes one event 
+  Mono-fireevent-complete
+
+ Flux publishes events one by one 
+   Flux wont be completed until last item
+  FLux.just(1,2)
+   flux- fire event with 1----consume
+         fire event with 2...consume
+
+
+subscriber
+  who listens for events
+  in webflux world subscriber is built in.
+  webflux subscriber writes data into http outputstream(response
+
+operator
+  methods which are used to create stream , transform, filter stream
+
+ just - operator
+ range -operator
+
+Project;
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>ibm.spring.reactive</groupId>
+	<artifactId>springreactive</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>springreactive</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+Mono:
+package com.ibm.nonblocking.mono;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("hello")
+public class GreeterController {
+
+    //Non blocking api
+    @GetMapping
+    public Mono<String> sayHello() {
+        System.out.println(Thread.currentThread().getName());
+        return Mono.just("Hello");
+    }
+
+    @GetMapping
+    @RequestMapping("messages")
+    public Mono<List<String>> greetings() {
+        return Mono.just(List.of("Hello","Hai"));
+    }
+
+}
+Flux:
+package com.ibm.nonblocking.flux;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+
+@RequestMapping("flux")
+@RestController
+public class FluxController {
+
+    @GetMapping
+    public Flux<Integer> getValues() {
+        return Flux.just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+    }
+
+    @GetMapping
+    @RequestMapping("range")
+    public Flux<Integer> getRange() {
+        return Flux.range(1, 100);
+    }
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										CURD operation using Spring web flux
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+package ibm.spring.reactive.curd;
+
+public class Product {
+    private String id;
+    private  String name;
+    private double price;
+
+    public Product() {
+    }
+
+    public Product(String id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+
+
+
+package ibm.spring.reactive.curd;
+
+import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Repository
+public class ProductRepository {
+    private final Map<String, Product> productMap = new ConcurrentHashMap<>();
+
+    //save
+    public Mono<Product> save(Product product) {
+        productMap.put(product.getId(), product);
+        return Mono.just(product);
+    }
+
+    public Mono<Product> findById(String id) {
+        Product product = productMap.get((id));
+        return product != null ? Mono.just(product) : Mono.empty();
+    }
+
+    public Flux<Product> findAll() {
+        return Flux.fromIterable(productMap.values());
+    }
+
+    public Mono<Product> update(String id, Product updatedProduct) {
+        if (productMap.containsKey(id)) {
+            updatedProduct.setId(id);
+            productMap.put(id, updatedProduct);
+            return Mono.just(updatedProduct);
+        }
+        return Mono.empty();
+    }
+
+    public Mono<Void> deleteById(String id) {
+        productMap.remove(id);
+        return Mono.empty();
+    }
+}
+
+
+package ibm.spring.reactive.curd;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+
+@Service
+public class ProductService {
+    @Autowired
+    private ProductRepository repository;
+
+    public Mono<Product> save(Product product) {
+        return repository.save(product);
+    }
+
+    public Mono<Product> findById(String id) {
+        return repository.findById(id);
+    }
+
+    public Flux<Product> findAll() {
+        return repository.findAll();
+    }
+
+    public Mono<Product> update(String id, Product product) {
+        return repository.update(id, product);
+    }
+
+    public Mono<Void> deleteById(String id) {
+        return repository.deleteById(id);
+    }
+}
+
+package ibm.spring.reactive.curd;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductService productService;
+
+    @PostMapping
+    public Mono<Product> create(@RequestBody Product product) {
+        return productService.save(product);
+    }
+
+    @GetMapping
+    public Flux<Product> findAll() {
+        return productService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Mono<Product> findById(@PathVariable String id) {
+        return productService.findById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Mono<Product> update(@PathVariable String id, @RequestBody Product product) {
+        return productService.update(id, product);
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<Void> delete(@PathVariable String id) {
+        return productService.deleteById(id);
+    }
+
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 
 

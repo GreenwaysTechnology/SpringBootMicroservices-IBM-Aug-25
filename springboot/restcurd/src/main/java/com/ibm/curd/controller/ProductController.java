@@ -4,6 +4,8 @@ import com.ibm.curd.entity.Product;
 import com.ibm.curd.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +21,7 @@ public class ProductController {
     public List<Product> findAll() {
         List<Product> products = productService.findAll();
         System.out.println(products);
-        return  products;
+        return products;
     }
 
     @GetMapping
@@ -38,12 +40,21 @@ public class ProductController {
         return product;
     }
 
+    //    @PostMapping
+//    @ResponseStatus(HttpStatus.CREATED)
+//    public Product save(@RequestBody Product product) {
+//        Product newProduct = productService.create(product);
+//        System.out.println(newProduct);
+//        return newProduct;
+//    }
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Product save(@RequestBody Product product) {
+    public ResponseEntity<Product> save(@RequestBody Product product) {
         Product newProduct = productService.create(product);
-        System.out.println(newProduct);
-        return newProduct;
+        return ResponseEntity
+                .status(201)
+                .header("name", "IBM")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(newProduct);
     }
 
     @PutMapping("{id}")
@@ -53,8 +64,14 @@ public class ProductController {
         return updatedProduct;
     }
 
+    //    @DeleteMapping("{id}")
+//
+//    public String delete(@PathVariable Long id) {
+//        return productService.deleteProduct(id) ? "Deleted" : "Not Found";
+//    }
     @DeleteMapping("{id}")
-    public String delete(@PathVariable Long id) {
-        return productService.deleteProduct(id) ? "Deleted" : "Not Found";
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        var res = productService.deleteProduct(id) ? "Deleted" : "Not Found";
     }
 }

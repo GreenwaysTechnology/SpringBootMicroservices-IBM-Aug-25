@@ -1,0 +1,446 @@
+										Pattern: Database per service Implementation
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+The database Per service is common approach in Microservices architecture where each service manages its own databases. This ensures strong data encapsulation, Service autonomy, and Loose Coupling between services.
+
+Use case 
+  Spring boot with two microservices, each with its own database
+
+Software Req:
+ ->Docker
+
+Structure :
+1.Product Service: manages product data
+2.Order Service : Manages order data
+
+Each service has its own database
+  Product Service - Postress
+  Order service - MySQL
+
+Benefits of Database per Service
+Decoupling: Services don’t share schema or data model.
+Independent scaling: Scale only the needed service.
+Fault isolation: One database failure won’t impact others.
+Polyglot persistence: Each service can use a different DB type.
+
+Order Service:
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ibm.spring.cloud</groupId>
+	<artifactId>orderservice</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>orderservice</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_PASSWORD=subu -e MYSQL_USER=subu -e MYSQL_DATABASE=order_db -p 3306:3306 mysql:8.0
+
+application.properties
+spring.application.name=orderservice
+
+#Data source property
+spring.datasource.url=jdbc:mysql://localhost:3306/order_db
+spring.datasource.username=subu
+spring.datasource.password=subu
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.show-sql=true 
+
+package com.ibm.spring.cloud.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "orderid")
+    private Long id;
+
+    @Column(name = "name")
+    private String name;
+    @Column(name = "quantity")
+    private int quantity;
+
+    public Order() {
+    }
+
+    public Order(Long id, String name, int quantity) {
+        this.id = id;
+        this.name = name;
+        this.quantity = quantity;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+}
+
+package com.ibm.spring.cloud.repository;
+
+
+import com.ibm.spring.cloud.entity.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+}
+
+package com.ibm.spring.cloud;
+
+import com.ibm.spring.cloud.entity.Order;
+import com.ibm.spring.cloud.repository.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+
+    @Autowired
+    private OrderRepository repository;
+
+    @GetMapping
+    public List<Order> findAll() {
+        return repository.findAll();
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Order create(@RequestBody Order order) {
+        return repository.save(order);
+    }
+}
+
+package com.ibm.spring.cloud;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class OrderserviceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(OrderserviceApplication.class, args);
+	}
+
+}
+
+Request
+
+POST /api/orders
+{
+    "name": "Tv",
+    "quantity": 100
+}
+
+
+GET  /api/orders
+
+[
+    {
+        "id": 1,
+        "name": "Iphone",
+        "quantity": 0
+    },
+    {
+        "id": 2,
+        "name": "Tv",
+        "quantity": 100
+    }
+]
+&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Service - 2: Product service
+
+ docker run --name my-custom-postgres  -e POSTGRES_USER=subu  -e POSTGRES_PASSWORD=subu -e POSTGRES_DB=product_db -p 5432:5432 postgres
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ibm.spring.cloud</groupId>
+	<artifactId>productservice</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>productservice</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+application.properties
+spring.application.name=productservice
+server.port=8082
+# PostgreSQL database configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/product_db
+spring.datasource.username=subu
+spring.datasource.password=subu
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA configurations (optional but common)
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.show-sql=true
+
+package com.ibm.spring.cloud.enity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "products")
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "pname")
+    private String name;
+    @Column(name="pprice")
+    private  double price;
+
+    public Product() {
+    }
+
+    public Product(Long id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+}
+package com.ibm.spring.cloud;
+
+import com.ibm.spring.cloud.enity.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductRepository extends JpaRepository<Product,Long> {
+}
+package com.ibm.spring.cloud.controller;
+
+import com.ibm.spring.cloud.ProductRepository;
+import com.ibm.spring.cloud.enity.Product;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductRepository repository;
+
+    @GetMapping
+    public List<Product> findAll() {
+        return repository.findAll();
+    }
+
+    @PostMapping
+    public Product save(@RequestBody Product product) {
+        return repository.save(product);
+    }
+}
+package com.ibm.spring.cloud;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ProductserviceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ProductserviceApplication.class, args);
+	}
+
+}
+
+Testing
+
+POST  localhost:8082/api/products
+{
+    "name":"tv",
+    "price" :20000
+}
+
+GET
+GET localhost:8082/api/products
+
+[
+    {
+        "id": 1,
+        "name": "Iphone",
+        "price": 45000.0
+    },
+    {
+        "id": 2,
+        "name": "tv",
+        "price": 20000.0
+    }
+]
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&

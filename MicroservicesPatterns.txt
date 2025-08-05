@@ -1,8 +1,8 @@
-				 Microservices
-.....................................................................................
+												 Microservices
+.........................................................................................................................................................................................................................................
 
 Application(software system) Development patterns:
-.................................................
+.................................................................
 
 Network based Applications - Distributed Application
 
@@ -122,7 +122,7 @@ etc.....
 ...........................................................................................................................................................................................................................................
 New way of building apps
 
-1.Automatation is key concept 
+1.Automation is key concept 
 
    From analysis , dev ,test, release, prod,  to maintaince 
 
@@ -366,7 +366,7 @@ Application Architecture Pattern
 -Monolithic architecture
 -Microservice architecture
 
-Decomposition Pattern -Y scalling
+Decomposition Pattern -Y scaling
 
 1.Decompose by business capability 	 
 2.Decompose by subdomain
@@ -374,7 +374,7 @@ Decomposition Pattern -Y scalling
 4.Service Per Team
 
 
-MicroService Architecture Pattern------>Depcompostion Pattern
+Microservice Architecture Pattern------>Decomposition Pattern
 
 Decompose by business capability 
 
@@ -390,13 +390,12 @@ Alternate Pattern
 Decompose by SubDomain:
   Decompose the problem based on DDD principles.
 
-....................................................................................
-				Data Management
-....................................................................................
+........................................................................................................................................................................................................................................
+									Data Management (Database Design)
+.....................................................................................................................................................................................................................................
 
 Core Pattern:
 1.Database Per Service Pattern
-
 2.Shared Database
 
 
@@ -404,15 +403,18 @@ Note:
   if you take any data related patterns, "Transactions" are very important.
 
 
-1.Database Per Service Pattern leads/succeeds other patterns -Predecssor pattern
+1.Database Per Service Pattern leads/succeeds other patterns -Predecessor pattern
 
-Succssor Patterns
+Successor Patterns
   Domain Event ---->
                    | ---alternate pattern
   Event Sourcing -->
-  Saga - Transaction - INSERT,UPDATE,DELETE
-  CQRS - SELECT, INSERT,UPDATE,DELETE.
-  API Composition
+  	Saga -
+	  Transaction - INSERT,UPDATE,DELETE
+     
+        Query:
+  	CQRS - SELECT
+  	API Composition
 
 Advanced Data Management Pattern -Transactional Messaging Pattern   
 
@@ -672,14 +674,14 @@ Observablity Design patterns:
 5.Exception Tracker Pattern
 6.Health Check API pattern
 
-.....................................................................................
+......................................................................................................................................................................................................................................
 								Microservices Implementations
-....................................................................................
+......................................................................................................................................................................................................................................
 
-Microservice is architecture that proposes many design patterns and principles, it is language and platform independant.
+Microservice is architecture that proposes many design patterns and principles, it is language and platform independent.
 
 Java Microservices:
-..................
+........................................
  Java technology provides various microservices pattern implementations.
 
 
@@ -700,7 +702,7 @@ Spring boot
 
 2.Quarkus
 
-3.Eclplise Vertx
+3.Eclplise Vertex
 
 4.AKKA with Microservices/Play
 
@@ -717,7 +719,7 @@ Micro service Application arch in Spring:
 ..........................................
 
 
-	   Spring cloud Config  Spring Cloud CircuitBreaker Spring Cloud Discovery ..
+	   Spring cloud Config  Spring Cloud Circuit Breaker Spring Cloud Discovery ..
 
 		|                     |                       |
 
@@ -739,7 +741,7 @@ Steps:
 1.Understanding REST API(Could be any api-graphql,grpc,MoM) development ,with data sources(mysql,postresql,nosql databases)
 
 2.Pick up design pattern.
-.....................................................................................
+..........................................................................................................................................................................................................................................
 
 
 

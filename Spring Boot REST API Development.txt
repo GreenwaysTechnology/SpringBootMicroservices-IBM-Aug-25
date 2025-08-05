@@ -1036,7 +1036,7 @@ Request Per thread model drawbacks:
 
 1.Operating system need to maintain so much threads, so that os need more memory, and also operating system need to do context switch a lot, so cpu power is used heavily..
 
-How to manange this?
+How to manage this?
 
  We need less threads, thats where new technology was created called "non blocking and async"
 

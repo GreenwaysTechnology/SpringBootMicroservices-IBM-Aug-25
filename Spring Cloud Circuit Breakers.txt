@@ -1,0 +1,98 @@
+									Spring Cloud Circuit Breakers
+
+	Spring Cloud Circuit Breakers are used to gracefully handle failures in distributed systems or microservice architectures.
+ They help prevent cascading failures and allow services to recover quickly by failing fast and providing fallbacks.
+
+What Is a Circuit Breaker?
+A circuit breaker:
+
+1.Monitors remote calls between services.
+2.Opens the circuit (stops requests) if failures exceed a threshold.
+3.Optionally allows a few requests through ("half-open" state) to test if the service has recovered.
+4.Closes the circuit again when the remote service is stable.
+
+
+Spring Cloud Circuit Breaker
+Spring Cloud Circuit Breaker is an abstraction layer that provides integration with different circuit breaker implementations like:
+
+Resilience4j (recommended)
+Hystrix (deprecated)
+Sentinel
+Reactive support
+
+✨ Example Using Spring Cloud Circuit Breaker with Resilience4j
+1. Add Dependencies
+xml
+Copy
+Edit
+<!-- Spring Boot Starter Web -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+
+<!-- Circuit Breaker Resilience4j -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+</dependency>
+2. Enable Circuit Breaker in Application
+java
+Copy
+Edit
+@RestController
+@RequestMapping("/api")
+public class SampleController {
+
+    private final RestTemplate restTemplate;
+
+    public SampleController(RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
+    }
+
+    @GetMapping("/getData")
+    @CircuitBreaker(name = "externalService", fallbackMethod = "fallbackMethod")
+    public String callExternalService() {
+        // Simulate external service call
+        return restTemplate.getForObject("http://external-service/api/data", String.class);
+    }
+
+    public String fallbackMethod(Throwable t) {
+        return "External service is down. Please try again later.";
+    }
+}
+3. application.yml Configuration (optional)
+yaml
+Copy
+Edit
+resilience4j:
+  circuitbreaker:
+    instances:
+      externalService:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 3
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s
+4. Monitoring (Optional)
+You can integrate with Micrometer and Prometheus to monitor metrics like:
+
+Failure rate
+
+Number of calls
+
+Circuit state
+
+📌 Supported Implementations via Spring Cloud Circuit Breaker
+Implementation	Starter Dependency
+Resilience4j	spring-cloud-starter-circuitbreaker-resilience4j
+Sentinel	spring-cloud-starter-circuitbreaker-sentinel
+Hystrix (legacy)	spring-cloud-starter-netflix-hystrix
+
+🧪 Testing Tips
+Simulate failures (e.g., timeout or 500 errors).
+
+Validate fallback methods get triggered.
+
+Use actuator endpoints to observe behavior: /actuator/health, /actuator/circuitbreakers.
+

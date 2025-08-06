@@ -297,9 +297,34 @@ Repository:
  -Store Stock Information
  -Stock Event information
 
-package com.sunlife.eventsourcing;
+................
+package com.ibm.eventsourcing.db;
+
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name = "stock")
+public class Stock {
+    @Id
+    @GeneratedValue
+    public Long id;
+    @Column(name = "name")
+    public String name;
+    @Column(name = "qty")
+    public int quantity;
+    @Column(name = "userName")
+    public String user;
+}
+
+package com.ibm.eventsourcing.db;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -316,8 +341,9 @@ public class EventStore {
     private LocalDateTime eventTime;
 }
 
-package com.sunlife.eventsourcing;
+package com.ibm.eventsourcing.db;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
@@ -325,25 +351,72 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 
 @Repository
-public interface EventRepository extends CrudRepository<EventStore, Long> {
-
+public interface EventRepository extends JpaRepository<EventStore, Long> {
     Iterable<EventStore> findByEntityId(String entityId);
-
     Iterable<EventStore> findByEntityIdAndEventTimeLessThanEqual(String entityId, LocalDateTime date);
 }
+package com.ibm.eventsourcing.db;
 
-....
-package com.sunlife.eventsourcing;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface StockRepository extends CrudRepository<Stock, Long> {
+    List<Stock> findByName(String name);
+}
+............
+Events
+...........
+package com.ibm.eventsourcing.db;
+
+public interface StockEvent {
+}
+
+package com.ibm.eventsourcing.db;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class StockAddedEvent implements StockEvent {
+    private Stock stockDetails;
+}
+package com.ibm.eventsourcing.db;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class StockUpdatedEvent implements StockEvent{
+    private Stock stockDetails;
+}
+package com.ibm.eventsourcing.db;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class StockRemovedEvent implements StockEvent {
+    private Stock stockDetails;
+}
+..
+service:
+package com.ibm.eventsourcing.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
 public class EventService {
-      @Autowired
+    @Autowired
     private EventRepository repository;
 
     public void addEvent(StockAddedEvent event) throws JsonProcessingException {
@@ -363,44 +436,89 @@ public class EventService {
         eventStore.setEventTime(LocalDateTime.now());
         repository.save(eventStore);
     }
+    public void addEvent(StockUpdatedEvent event) throws JsonProcessingException {
+        EventStore eventStore = new EventStore();
+        eventStore.setEventData(new ObjectMapper().writeValueAsString(event.getStockDetails()));
+        eventStore.setEventType("STOCK_UPDATED");
+        eventStore.setEntityId(event.getStockDetails().getName());
+        eventStore.setEventTime(LocalDateTime.now());
+        repository.save(eventStore);
+    }
 
     public Iterable<EventStore> fetchAllEvents(String name) {
         return repository.findByEntityId(name);
     }
 
     public Iterable<EventStore> fetchAllEventsTillDate(String name, LocalDateTime date) {
-               return repository.findByEntityIdAndEventTimeLessThanEqual(name, date);
+        return repository.findByEntityIdAndEventTimeLessThanEqual(name, date);
 
     }
 }
-
-Controller:
-
-package com.sunlife.eventsourcing;
-
+package com.ibm.eventsourcing.db;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 public class StockController {
     @Autowired
     private EventService eventService;
+    @Autowired
+    private StockRepository stockRepository;
 
     @PostMapping("/stock")
-    public void addStock(@RequestBody Stock stockRequest) throws JsonProcessingException {
-        StockAddedEvent event = StockAddedEvent.builder().stockDetails(stockRequest).build();
-        eventService.addEvent(event);
+    public ResponseEntity<Stock> addStock(@RequestBody Stock stockRequest) throws JsonProcessingException {
+        StockAddedEvent addedEvent = StockAddedEvent.builder().stockDetails(stockRequest).build();
+        StockUpdatedEvent updatedEvent = StockUpdatedEvent.builder().stockDetails(stockRequest).build();
+        List<Stock> existingStockList = stockRepository.findByName(stockRequest.getName());
+        if (existingStockList != null && existingStockList.size() > 0) {
+            Stock existingStock = existingStockList.get(0);
+            int newQuantity = existingStock.getQuantity() + stockRequest.getQuantity();
+            //update logic
+            //existingStock.quantity = newQuantity;
+            existingStock.setQuantity(newQuantity);
+            //existingStock.name = stockRequest.name;
+            existingStock.setName(stockRequest.getName());
+            updatedEvent.setStockDetails(existingStock);
+            //fire update event
+            eventService.addEvent(updatedEvent);
+            return ResponseEntity.ok(existingStock); // 200 OK
+        } else {
+            stockRepository.save(stockRequest); // This was a bug: previously `s(...)`
+            eventService.addEvent(addedEvent);
+            return ResponseEntity.status(201).body(stockRequest); // 201 Created
+        }
     }
 
     @DeleteMapping("/stock")
     public void removeStock(@RequestBody Stock stock) throws JsonProcessingException {
         StockRemovedEvent event = StockRemovedEvent.builder().stockDetails(stock).build();
+        int newQuantity = 0;
+        List<Stock> existingStockList = stockRepository.findByName(stock.getName());
+
+        if (existingStockList != null && existingStockList.size() > 0) {
+
+            Stock existingStock = existingStockList.get(0);
+
+            newQuantity = existingStock.getQuantity() - stock.getQuantity();
+
+            if (newQuantity <= 0) {
+                stockRepository.delete(existingStock);
+            } else {
+                existingStock.setQuantity(newQuantity);
+                  existingStock.setUser(stock.getUser());
+                stockRepository.save(existingStock);
+            }
+            event.setStockDetails(existingStock);
+        }
+
         eventService.addEvent(event);
     }
 
@@ -462,41 +580,66 @@ public class StockController {
 
 
 }
+package com.ibm;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EventSourcingUsingDatabase {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EventSourcingUsingDatabase.class, args);
+	}
+
+}
 
 How to test;
 
 POST localhost:8080/stock
 
 {
-    "name":"IPhone",
-    "quantity":10,
-    "addedBy":"Ram"
+    "name": "IPhone",
+    "quantity": 10,
+    "user": "Ram"
 }
 
+DELETE  localhost:8080/stock
+{
+    "name": "IPhone",
+    "quantity": 10,
+    "user": "Ram"
+}
 
 GET localhost:8080/events?name=IPhone
-
 [
     {
+        "eventId": 1,
+        "eventType": "STOCK_ADDED",
+        "entityId": "IPhone",
+        "eventData": "{\"id\":1,\"name\":\"IPhone\",\"quantity\":10,\"user\":\"Ram\"}",
+        "eventTime": "2025-08-06T11:25:01.470341"
+    },
+    {
+        "eventId": 2,
+        "eventType": "STOCK_UPDATED",
+        "entityId": "IPhone",
+        "eventData": "{\"id\":1,\"name\":\"IPhone\",\"quantity\":20,\"user\":\"Ram\"}",
+        "eventTime": "2025-08-06T11:25:02.550263"
+    },
+    {
+        "eventId": 3,
+        "eventType": "STOCK_UPDATED",
+        "entityId": "IPhone",
+        "eventData": "{\"id\":1,\"name\":\"IPhone\",\"quantity\":30,\"user\":\"Ram\"}",
+        "eventTime": "2025-08-06T11:25:03.710183"
+    },
+    {
         "eventId": 4,
-        "eventType": "STOCK_ADDED",
+        "eventType": "STOCK_REMOVED",
         "entityId": "IPhone",
-        "eventData": "{\"name\":\"IPhone\",\"quantity\":34,\"user\":null}",
-        "eventTime": "2023-12-13T17:19:32.961802"
-    },
-    {
-        "eventId": 5,
-        "eventType": "STOCK_ADDED",
-        "entityId": "IPhone",
-        "eventData": "{\"name\":\"IPhone\",\"quantity\":34,\"user\":null}",
-        "eventTime": "2023-12-13T17:19:50.424197"
-    },
-    {
-        "eventId": 6,
-        "eventType": "STOCK_ADDED",
-        "entityId": "IPhone",
-        "eventData": "{\"name\":\"IPhone\",\"quantity\":10,\"user\":null}",
-        "eventTime": "2023-12-13T17:21:26.872839"
+        "eventData": "{\"id\":1,\"name\":\"IPhone\",\"quantity\":20,\"user\":\"IPhone\"}",
+        "eventTime": "2025-08-06T11:25:25.392045"
     }
 ]
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&

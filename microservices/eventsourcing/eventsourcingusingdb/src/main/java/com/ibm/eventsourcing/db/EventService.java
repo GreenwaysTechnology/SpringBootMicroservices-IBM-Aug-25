@@ -25,6 +25,14 @@ public class EventService {
         EventStore eventStore = new EventStore();
         eventStore.setEventData(new ObjectMapper().writeValueAsString(event.getStockDetails()));
         eventStore.setEventType("STOCK_REMOVED");
+        eventStore.setEntityId(event.getStockDetails().getUser());
+        eventStore.setEventTime(LocalDateTime.now());
+        repository.save(eventStore);
+    }
+    public void addEvent(StockUpdatedEvent event) throws JsonProcessingException {
+        EventStore eventStore = new EventStore();
+        eventStore.setEventData(new ObjectMapper().writeValueAsString(event.getStockDetails()));
+        eventStore.setEventType("STOCK_UPDATED");
         eventStore.setEntityId(event.getStockDetails().getName());
         eventStore.setEventTime(LocalDateTime.now());
         repository.save(eventStore);

@@ -643,8 +643,589 @@ GET localhost:8080/events?name=IPhone
     }
 ]
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-										  Event Sourcing using Kafka
+					  EventSourcing with External Events Store platforms									
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+1.Kafka
+2.eventStoreDb
+3.CloudEventStore
+4.Eventuate Tram
+
+Kafka:
+.....
+
+What is Kafka?
+  Apache Kafka is an open-source distributed event streaming platform.
+
+What is Event?
+   An Event is any type of action,incident,or change are "happening" or "just happened"
+for eg:
+  Now i am typing,Now i am teaching - happening
+  Just i had coffee,Just i received mail, just i clicked a link, just i searched product - happened.
+
+ "An Event is just remainder or notification of  your happenings or happened"
+
+Events In the Softwares Systems:
+................................
+Every Software system has concept of "logs"
+
+Log:
+  Recording current informations.
+ Logs are used in software to record activities of code.
+
+...webserver initalize.... time.....
+...webserver assigns port....
+...webserver assigns host...
+
+Logs are used to tracking,debuging,fixing errors etc..... 
+
+
+Imgaine i need  somebody or somthing should record every activity of my life from the early moring when i get up and till bed.
+
+  There is a system to record every events of your life that is called 
+			      Kafka
+
+	 Kafka is Event Processing Software , which stores and process events
+...................................................................................
+.....................................................................................
+			Kafka Basic  Architecture
+.....................................................................................
+
+How kafka has been implemented?
+
+   "Kafka is a software"
+   "Kafka is a file(Commit log file) processing software
+   "Kafka is written in java and scala" - Kafka is just java application
+   "In order to run Kafka we need JVM"
+
+How event is represented into kafka?
+
+	Event is just a message.
+        Every message has its own arch.
+        In Kafka the Event/Message is called as "Record".
+		Event(Record)
+
+Event====>Record----------Kafka---will store into log file...
+.....................................................................................
+			 Sending Messages(Events) to Broker
+.....................................................................................	
+				Topics
+....................................................................................
+
+What is Topic?
+  There are lot of events, we need to organize them in the system
+  Apache Kafka's most fundamental unit of organization is the topic.
+
+ Topic is just like table in the relational database.
+
+  As we discussed already, kafka just stores events in the log files.
+
+  We never write events into log file directly.
+
+  As a developer we caputure events, write them into "topic" , kafka writes into log file from the topic.
+
+  Topic is log of events, logs are easy to undestand
+
+ Topic is just simple data structure with well known semantics, they are append only.
+
+ When ever we write a message, it always goes on the end.
+
+ When you read message, from the logs, by "Seeking offset in the log".
+
+ Logs are fundamental durable things, Traditional Messaging systems have topics and queues which stores messages temporarily to buffer them between source and designation.
+
+ Since topics are logs, which always permenant.
+
+ You can delete directly log files not but not messages, but you purge messages.
+
+ You can store logs as short as to as long as years or even you can retain messages indefintely.
+
+Partition:
+..........
+
+ Breaking topic into multiple units called partitions.
+
+Segments:
+  Each partitions is broken up into multiple log files...
+.....................................................................................
+				 Kafka Broker
+.....................................................................................
+
+It is node or process which host kafka application, kafka app is java application.
+
+if you run multiple kakfa process(jvms) on single host or mutliple host or inside vm or containers... : cluster.
+
+Cluster means group of kafka process called broker.
+
+Kafka has two software:
+.......................
+
+1.Data plane - Where actual records are stored - Brokers
+2.Control Plane - which manages cluster- Cluster Manager
+
+Control Plane:
+1.Zookeeper - traditional control plan software.
+2.KRaft- modern control plan software
+.....................................................................................
+
+Kafka Distribution:
+
+1.Apache Kafka - core kafka -open source
+2.Confluent Kafka - Confluent is company who is running by kafka creators, who built Enter prise kafka - community,enterprise...
+.....................................................................................
+
+How to work with kafka?
+
+1.You kafka broker
+2.You need application written in any language - can talk to kafka
+
+Kafka provides cli tools to learn kafka core features, publishing,consuming etc....
+
+
+How to setup kafka?
+
+1.Desktop
+   Linux,windows
+2.Docker 
+3.Cloud
+........................................................................................................................................................................................................................................
+										Building Spring with Kafka Application
+
+
+Steps :
+
+1.You have start Kafka
+docker-compose.yaml
+
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+Start
+>docker-compose -f docker-compose.yaml up
+
+application.yml
+spring:
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.2.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ibm.eventsourcing</groupId>
+	<artifactId>eventsourcing-kakfa</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>eventsourcing-kakfa</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.10.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+Entity:
+package com.ibm.eventsourcing.kafka;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.Data;
+@Entity
+@Data
+public class Stock {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+    private String name;
+    private int quantity;
+    private String userName;
+
+}
+Repository:
+package com.ibm.eventsourcing.kafka;
+
+import java.util.List;
+import org.springframework.data.repository.CrudRepository;
+
+public interface StockRepo extends CrudRepository<Stock, Integer> {
+
+    List<Stock> findByName(String name);
+}
+
+Events:
+package com.ibm.eventsourcing.kafka;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class EventRecord {
+    private long eventId;
+    private String eventType;
+    private String entityId;
+    private String eventData;
+    private LocalDateTime eventTime;
+}
+
+package com.ibm.eventsourcing.kafka;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Data
+@Builder
+public class StockAddedEvent implements StockEvent {
+    private  Stock stockDetails;
+}
+package com.ibm.eventsourcing.kafka;
+
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class StockRemovedEvent implements StockEvent {
+    private Stock stockDetails;
+}
+
+Services:
+package com.ibm.eventsourcing.kafka;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+
+@Service
+public class EventService {
+    //used to send/publish message into kafka broker
+    @Autowired
+    private KafkaTemplate<String, Object> template;
+
+    public void addEvent(StockAddedEvent event) throws JsonProcessingException {
+        EventRecord eventRecord = new EventRecord();
+        eventRecord.setEventData(new ObjectMapper().writeValueAsString(event.getStockDetails()));
+        eventRecord.setEventType(StockStatus.STOCK_ADDED.name());
+        eventRecord.setEventId(UUID.randomUUID().getMostSignificantBits());
+        eventRecord.setEntityId(event.getStockDetails().getName());
+        eventRecord.setEventTime(LocalDateTime.now());
+
+        CompletableFuture<SendResult<String, Object>> future = template.send("stock", eventRecord);
+        future.whenComplete((result, ex) -> {
+            if (ex == null) {
+                System.out.println("Sent message=[" + eventRecord +
+                        "] with offset=[" + result.getRecordMetadata().offset() + "]");
+            } else {
+                System.out.println("Unable to send message=[" +
+                        eventRecord + "] due to : " + ex.getMessage());
+            }
+        });
+    }
+
+    public void addEvent(StockRemovedEvent event) throws JsonProcessingException {
+        EventRecord eventRecord = new EventRecord();
+        eventRecord.setEventData(new ObjectMapper().writeValueAsString(event.getStockDetails()));
+        eventRecord.setEventType(StockStatus.STOCK_REMOVED.name());
+        eventRecord.setEventId(UUID.randomUUID().getMostSignificantBits());
+        eventRecord.setEntityId(event.getStockDetails().getName());
+        eventRecord.setEventTime(LocalDateTime.now());
+        CompletableFuture<SendResult<String, Object>> future = template.send("stock", eventRecord);
+        future.whenComplete((result, ex) -> {
+            if (ex == null) {
+                System.out.println("Sent message=[" + eventRecord +
+                        "] with offset=[" + result.getRecordMetadata().offset() + "]");
+            } else {
+                System.out.println("Unable to send message=[" +
+                        eventRecord + "] due to : " + ex.getMessage());
+            }
+        });
+    }
+
+
+}
+
+Kafka config:
+package com.ibm.eventsourcing.kafka;
+
+import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.support.serializer.JsonSerializer;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class KafkaProducerConfig {
+
+    @Bean
+    public NewTopic createTopic() {
+        return new NewTopic("stock", 3, (short) 1);
+    }
+    @Bean
+    public Map<String, Object> producerConfig() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class);
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                JsonSerializer.class);
+        return props;
+    }
+
+    @Bean
+    public ProducerFactory<String, Object> producerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfig());
+    }
+
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+
+}
+package com.ibm.eventsourcing.kafka;
+
+public enum StockStatus {
+    STOCK_ADDED,
+    STOCK_REMOVED
+}
+package com.ibm.eventsourcing.kafka;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.gson.Gson;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+public class StockController {
+
+    @Autowired
+    private EventService eventService;
+    @Autowired
+    private StockRepo repo;
+
+    @PostMapping("/stock")
+    public void addStock(@RequestBody Stock stockRequest) throws JsonProcessingException {
+        StockAddedEvent event = StockAddedEvent.builder().stockDetails(stockRequest).build();
+
+        List<Stock> existingStockList = repo.findByName(stockRequest.getName());
+
+        if (existingStockList != null && existingStockList.size() > 0) {
+
+            Stock existingStock = existingStockList.get(0);
+            int newQuantity = existingStock.getQuantity() + stockRequest.getQuantity();
+            existingStock.setQuantity(newQuantity);
+            existingStock.setUserName(stockRequest.getUserName());
+            repo.save(existingStock);
+
+        } else {
+            repo.save(stockRequest);
+        }
+        //add Event
+        eventService.addEvent(event);
+    }
+
+    @DeleteMapping("/stock")
+    public void removeStock(@RequestBody Stock stock) throws JsonProcessingException {
+        StockRemovedEvent event = StockRemovedEvent.builder().stockDetails(stock).build();
+        int newQuantity = 0;
+
+        List<Stock> existingStockList = repo.findByName(stock.getName());
+
+        if (existingStockList != null && existingStockList.size() > 0) {
+
+            Stock existingStock = existingStockList.get(0);
+
+            newQuantity = existingStock.getQuantity() - stock.getQuantity();
+
+            if (newQuantity <= 0) {
+                repo.delete(existingStock);
+            } else {
+                existingStock.setQuantity(newQuantity);
+                existingStock.setUserName(stock.getUserName());
+                repo.save(existingStock);
+            }
+        }
+        //fire delete event
+        eventService.addEvent(event);
+    }
+
+    @GetMapping("/stock")
+    public List<Stock> getStock(@RequestParam("name") String name) throws JsonProcessingException {
+        return repo.findByName(name);
+    }
+}
+package com.ibm.eventsourcing.kafka;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EventsourcingKakfaApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EventsourcingKakfaApplication.class, args);
+	}
+
+}
+
+Testing:
+
+POST  localhost:8080/stock
+{
+    "name": "Iphone",
+    "quantity": 20,
+    "userName": "Subramanian Murugan"
+}
+
+DELETE  localhost:8080/stock
+{
+    "name": "Iphone",
+    "quantity": 20,
+    "userName": "Subramanian Murugan"
+}
+
+Watch Events in Live:
+
+docker ps
+CONTAINER ID   IMAGE                             COMMAND                  CREATED          STATUS          PORTS                                        NAMES
+33cdca90a21f   confluentinc/cp-kafka:7.5.0       "/etc/confluent/dock…"   11 minutes ago   Up 11 minutes   0.0.0.0:9092->9092/tcp                       kafka
+b64e0664098e   confluentinc/cp-zookeeper:7.5.0   "/etc/confluent/dock…"   11 minutes ago   Up 11 minutes   2888/tcp, 0.0.0.0:2181->2181/tcp, 3888/tcp   zookeeper
+
+find container id of running kafka
+
+docker exec -it 33cdca90a21f /bin/bash
+
+[appuser@33cdca90a21f ~]$ kafka-console-consumer --bootstrap-server localhost:9092 --topic stock --from-beginning
+
+{"eventId":-4391364360740974911,"eventType":"STOCK_ADDED","entityId":"Iphone","eventData":"{\"id\":1,\"name\":\"Iphone\",\"quantity\":20,\"userName\":\"Subramanian Murugan\"}","eventTime":[2025,8,6,12,27,36,789237600]}
+{"eventId":-4746615135167364213,"eventType":"STOCK_ADDED","entityId":"Iphone","eventData":"{\"id\":0,\"name\":\"Iphone\",\"quantity\":20,\"userName\":\"Subramanian Murugan\"}","eventTime":[2025,8,6,12,28,34,357735700]}
+{"eventId":-1529879407715728590,"eventType":"STOCK_REMOVED","entityId":"Iphone","eventData":"{\"id\":0,\"name\":\"Iphone\",\"quantity\":10,\"userName\":\"Subramanian Murugan\"}","eventTime":[2025,8,6,12,29,7,45768400]}
+{"eventId":7016807850591079952,"eventType":"STOCK_REMOVED","entityId":"Iphone","eventData":"{\"id\":0,\"name\":\"Iphone\",\"quantity\":10,\"userName\":\"Subramanian Murugan\"}","eventTime":[2025,8,6,12,29,28,81031100]}
+
+
 
 
 

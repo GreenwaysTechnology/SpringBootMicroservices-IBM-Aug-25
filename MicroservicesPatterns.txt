@@ -612,7 +612,7 @@ Microservices provides a Design patterns to handle failures and slow calls
 3.Retry Pattern
 4.Circuit Breaker Patterns
 .....................................................................................
-		Application Infrasturcture patterns   -cross cutting concerings
+		Application Infrastructure patterns   -cross cutting concerns
 ...................................................................................
                       Configuration Data and Its patterns
 
@@ -631,7 +631,7 @@ We have design pattern to centeralize configuration data/information.
    tracing
    metrics
 2.Service Templates
-3.Externalized COnfiguration
+3.Externalized Configuration
 .....................................................................................
 .....................................................................................
 		   Micro services are ready in production
@@ -712,11 +712,11 @@ Spring boot
 			Spring Cloud and implementations
 ...................................................................................
 
-if you are new spring echo system(old spring,spring boot),First you need to learn spring(core,web,data).
+if you are new spring echo system(old spring, spring boot),First you need to learn spring (core, web, data).
 
 
 Micro service Application arch in Spring:
-..........................................
+....................................................................
 
 
 	   Spring cloud Config  Spring Cloud Circuit Breaker Spring Cloud Discovery ..
@@ -727,7 +727,7 @@ Micro service Application arch in Spring:
 .....................................................................................
 			       Spring Cloud		
 				    |		  		 	                       .................................................
-		  Spring Core,Spring Web,Spring Data - API Development
+		  Spring Core, Spring  Web, Spring Data - API Development
 				   |
 				Spring Boot
 			           |

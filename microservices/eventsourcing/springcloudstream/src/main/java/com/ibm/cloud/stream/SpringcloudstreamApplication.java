@@ -15,6 +15,7 @@ public class SpringcloudstreamApplication {
         SpringApplication.run(SpringcloudstreamApplication.class, args);
     }
 
+    //publish message automatically
     @Bean
     public Supplier<UUID> stringSupplier() {
         return () -> {
@@ -26,7 +27,13 @@ public class SpringcloudstreamApplication {
     @Bean
     public Consumer<String> stringConsumer() {
         return message -> {
-            System.out.println(message);
+            //System.out.println(message);
+        };
+    }
+    @Bean
+    public Consumer<Stock> stockEventConsumer() {
+        return stock -> {
+            System.out.println("Received: " + stock);
         };
     }
 }

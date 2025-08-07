@@ -1,6 +1,6 @@
 									Event Sourcing and Domain Events
 									      Event Driven Microservices
-									Messaging - use asynchronous messaging for inter-service communication
+							Messaging - use asynchronous messaging for inter-service communication
 
 
 An Event-microservices architecture is an approach to software development where decoupled microservices are designed to communicate with one another when events occur.
@@ -643,7 +643,7 @@ GET localhost:8080/events?name=IPhone
     }
 ]
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-					  EventSourcing with External Events Store platforms									
+								  EventSourcing with External Events Store platforms									
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
 1.Kafka
@@ -1434,4 +1434,97 @@ public class SpringcloudstreamApplication {
         };
     }
 }
+.....................................................................................
+		How to publish message via rest api using Spring Cloud Stream
+			 (Event Sourcing)
+.....................................................................................
+
+StreamBridge - Api used to publish message using rest api.
+
+application.yml
+#Stream Configuration
+spring:
+  cloud:
+    function:
+      definition: stringSupplier;stringConsumer;stockEventConsumer
+    stream:
+      bindings:
+        stringSupplier-out-0:
+          destination: randomUUid-topic
+        stringConsumer-in-0:
+          destination: randomUUid-topic
+        stockEvent-out-0:
+          destination: inventory-topic
+        stockEventConsumer-in-0:
+          destination: inventory-topic
+#Bindiner(Kafka) Configuration
+
+package com.ibm;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+@SpringBootApplication
+public class SpringcloudstreamApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringcloudstreamApplication.class, args);
+    }
+
+    //producer which sends messages via functional
+    //stringSupplier is function name , if you dont configure, then function name would be topic
+    //name
+    @Bean
+    public Supplier<UUID> stringSupplier() {
+        return () -> {
+            var uuid = UUID.randomUUID();
+            return uuid;
+        };
+    }
+
+	//Consumer
+
+    @Bean
+    public Consumer<UUID> stringConsumer() {
+        return uuid -> {
+            System.out.println("Received: " + uuid);
+        };
+    }
+
+    @Bean
+    public Consumer<Stock> stockEventConsumer() {
+        return stock -> {
+            System.out.println("Received: " + stock);
+        };
+    }
+}
+package com.ibm;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/publish")
+public class StockController {
+
+    @Autowired
+    private StreamBridge streamBridge;
+
+    @PostMapping
+    public String publish(@RequestBody Stock stock) {
+        streamBridge.send("stockEvent-out-0", stock);
+        return "Message Published";
+
+    }
+}
+
 

@@ -1,12 +1,16 @@
 spring:
   cloud:
     function:
-      definition: stringSupplier;stringConsumer
+      definition: stringSupplier;stringConsumer;stockEventConsumer
     stream:
       bindings:
         stringSupplier-out-0:
           destination: randomUUid-topic
         stringConsumer-in-0:
           destination: randomUUid-topic
+        stockEvent-out-0:
+          destination: inventory-topic
+        stockEventConsumer-in-0:
+          destination: inventory-topic
 
 

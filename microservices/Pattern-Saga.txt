@@ -1,0 +1,579 @@
+											  Saga
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Transactions:
+   A sequence of one or more SQL statements executed as a single logical unit. The transactions are defined by ACID properties
+
+Atomicity - all should succeed completely or all should fail completely 
+Consistency - maintaining state - from valid 
+Isolation -  It should invisible until it is committed
+Durability - Once transaction committed, its changes must be permanent and survive even system failures
+
+In spring boot if you are going to perform multiple database operations  under single insert/update/delete operations, transaction must be enabled.
+
+Types of Transactions:
+
+1.local transactions
+    Transactions are happening within single database
+  In monolith applications transactions are easy why because, all database operations are performed under single single
+2.distributed transactions
+
+In spring boot transactions are enabled using annotation @Transactional
+
+Local Transaction:
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ibm.transactions</groupId>
+	<artifactId>localtransactions</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>localtransactions</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+application.yml
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+package com.ibm.transactions;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "products")
+public class Product {
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @Column(name="name")
+    private  String name;
+    @Column(name="price")
+    private Double price;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
+    }
+}
+
+package com.ibm.transactions;
+
+import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class ProductService {
+
+    @Autowired
+    private ProductRepository repository;
+
+    public List<Product> findAll() {
+        return repository.findAll();
+    }
+
+    @Transactional
+    public Product save(Product product) {
+        if (product.getPrice() < 0) {
+            throw new IllegalArgumentException("Price cant be negative");
+        }
+        return repository.save(product);
+    }
+}
+package com.ibm.transactions;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductService productService;
+
+    @PostMapping
+    public ResponseEntity<Product> save(@RequestBody Product product) {
+        return ResponseEntity.status(201).body(productService.save(product));
+    }
+
+    public List<Product> findAll(){
+        return  productService.findAll();
+    }
+
+
+}
+package com.ibm.transactions;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class LocaltransactionsApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(LocaltransactionsApplication.class, args);
+	}
+
+}
+...........................................................................................................................................................................................................................................
+											saga pattern implementation
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Services are going to perform database operations, when ever database operations is committed or rollbacked, it emits a event , based on those events other services perform their database operations
+
+
+Order Service----insert new Order
+					------------->Emit Event
+								|
+								Payment and Inventory Service reacts to the event
+										---Starts performing Its Database operations
+
+
+project setup:
+docker-compose.yml
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: 'postgres:14.4'
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=saga_db
+      - POSTGRES_USER=sa
+      - POSTGRES_PASSWORD=sa
+    ports:
+      - "5432:5432"
+
+pom.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example.saga</groupId>
+	<artifactId>saga-simple</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>saga-simple</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+..........................................................................................................................................................................................................................................
+
+Here we use three services
+OrderService
+PaymentService
+InventoryService
+
+For simplicity, i have written all service logic inside one single project, but in real time it would be three different projects.
+
+application.properties
+spring.application.name=single-saga-kafka
+server.port=8080
+
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/saga_db
+spring.datasource.username=sa
+spring.datasource.password=sa
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+# Kafka Configuration
+spring.kafka.bootstrap-servers=localhost:9092
+
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer= org.springframework.kafka.support.serializer.JsonSerializer
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
+
+# Type mapping for JSON deserialization
+spring.kafka.consumer.properties.spring.json.type.default.mapping=\
+  order_created_event:com.example.saga.events.OrderCreatedEvent,\
+  payment_processed_event:com.example.saga.events.PaymentProcessedEvent,\
+  payment_failed_event:com.example.saga.events.PaymentFailedEvent,\
+  inventory_updated_event:com.example.saga.events.InventoryUpdatedEvent,\
+  inventory_update_failed_event:com.example.saga.events.InventoryUpdateFailedEvent
+
+spring.kafka.consumer.properties.spring.json.trusted.packages=com.example.saga.events
+
+
+Events:
+package com.example.saga.events;
+
+import java.util.UUID;
+
+public record InventoryUpdatedEvent(UUID orderId) {}
+package com.example.saga.events;
+
+
+import java.util.UUID;
+
+public record InventoryUpdateFailedEvent(UUID orderId) {}
+........
+package com.example.saga.events;
+
+import java.util.UUID;
+
+public record OrderCreatedEvent(UUID orderId, String item) {}
+
+package com.example.saga.events;
+
+import java.util.UUID;
+
+public record PaymentFailedEvent(UUID orderId) {}
+
+package com.example.saga.events;
+
+import java.util.UUID;
+
+public record PaymentProcessedEvent(UUID orderId) {}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Entities
+package com.example.saga.entities;
+
+import jakarta.persistence.*;
+import lombok.Data;
+
+@Entity
+@Table(name = "inventory")
+@Data
+public class Inventory {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String item;
+    private int quantity;
+}
+
+package com.example.saga.entities;
+
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.util.UUID;
+
+@Entity
+@Table(name = "orders")
+@Data
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    private String item;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+}
+package com.example.saga.entities;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import java.util.UUID;
+
+@Entity
+@Table(name = "payments")
+@Data
+public class Payment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    private UUID orderId;
+    private boolean processed;
+}
+package com.example.saga.entities;
+
+
+public enum OrderStatus {
+    PENDING,
+    COMPLETED,
+    CANCELLED
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Repository:
+package com.example.saga.repositories;
+
+import com.example.saga.entities.Order;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.UUID;
+
+public interface OrderRepository extends JpaRepository<Order, UUID> {}
+
+package com.example.saga.repositories;
+
+import com.example.saga.entities.Inventory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+
+public interface InventoryRepository extends JpaRepository<Inventory, Long> {
+    Optional<Inventory> findByItem(String item);
+}
+package com.example.saga.repositories;
+
+import com.example.saga.entities.Payment;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface PaymentRepository extends JpaRepository<Payment, UUID> {
+    Optional<Payment> findByOrderId(UUID orderId);
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+Services:
+package com.example.saga.services;
+
+
+import com.example.saga.entities.Order;
+import com.example.saga.entities.OrderStatus;
+import com.example.saga.events.InventoryUpdateFailedEvent;
+import com.example.saga.events.InventoryUpdatedEvent;
+import com.example.saga.events.OrderCreatedEvent;
+import com.example.saga.events.PaymentFailedEvent;
+import com.example.saga.repositories.OrderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Service
+public class OrderService {
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    public void createOrder(String item) {
+        Order order = new Order();
+        order.setItem(item);
+        order.setStatus(OrderStatus.PENDING);
+        Order savedOrder = orderRepository.save(order);
+
+        System.out.println("Order " + savedOrder.getId() + " created with status PENDING.");
+        // Publish the event to start the saga
+        kafkaTemplate.send("order-events", new OrderCreatedEvent(savedOrder.getId(), savedOrder.getItem()));
+    }
+
+    @KafkaListener(topics = "payment-events", groupId = "order-group")
+    public void handlePaymentEvents(Object event) {
+        if (event instanceof PaymentFailedEvent) {
+            PaymentFailedEvent failedEvent = (PaymentFailedEvent) event;
+            Order order = orderRepository.findById(failedEvent.orderId()).orElseThrow();
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+            System.out.println("Saga failed! Payment failed for order " + order.getId() + ". Order status set to CANCELLED.");
+        }
+    }
+
+    @KafkaListener(topics = "inventory-events", groupId = "order-group")
+    public void handleInventoryEvents(Object event) {
+        if (event instanceof InventoryUpdatedEvent) {
+            InventoryUpdatedEvent updatedEvent = (InventoryUpdatedEvent) event;
+            Order order = orderRepository.findById(updatedEvent.orderId()).orElseThrow();
+            order.setStatus(OrderStatus.COMPLETED);
+            orderRepository.save(order);
+            System.out.println("Saga completed! Inventory updated for order " + order.getId() + ". Order status set to COMPLETED.");
+        } else if (event instanceof InventoryUpdateFailedEvent) {
+            InventoryUpdateFailedEvent failedEvent = (InventoryUpdateFailedEvent) event;
+            Order order = orderRepository.findById(failedEvent.orderId()).orElseThrow();
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+            System.out.println("Saga failed! Inventory update failed for order " + order.getId() + ". Order status set to CANCELLED.");
+        }
+    }
+}
+
+...........
+Testing:
+
+docker-compose up
+
+localhost:8080/orders
+
+
+
+
+

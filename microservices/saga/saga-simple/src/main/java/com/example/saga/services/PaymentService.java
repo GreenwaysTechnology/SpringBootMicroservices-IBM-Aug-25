@@ -22,7 +22,7 @@ public class PaymentService {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @KafkaListener(topics = "order-events", groupId = "payment-group")
+    @KafkaListener(topics = "order-events", groupId = "group1")
     public void handleOrderCreated(OrderCreatedEvent event) {
         System.out.println("PaymentService received OrderCreatedEvent for order " + event.orderId());
         try {

@@ -32,7 +32,7 @@ public class OrderService {
         kafkaTemplate.send("order-events", new OrderCreatedEvent(savedOrder.getId(), savedOrder.getItem()));
     }
 
-    @KafkaListener(topics = "payment-events", groupId = "order-group")
+    @KafkaListener(topics = "payment-events", groupId = "group1")
     public void handlePaymentEvents(Object event) {
         if (event instanceof PaymentFailedEvent) {
             PaymentFailedEvent failedEvent = (PaymentFailedEvent) event;
@@ -40,17 +40,12 @@ public class OrderService {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
             System.out.println("Saga failed! Payment failed for order " + order.getId() + ". Order status set to CANCELLED.");
-        } else if (event instanceof PaymentProcessedEvent) {
-            Order order = orderRepository.findById(((PaymentProcessedEvent) event).orderId()).orElseThrow();
-            order.setStatus(OrderStatus.COMPLETED);
-            orderRepository.save(order);
-            System.out.println("Saga completed! Inventory updated for order " + order.getId() + ". Order status set to COMPLETED.");
-
         }
     }
 
-    @KafkaListener(topics = "inventory-events", groupId = "order-group")
+    @KafkaListener(topics = "inventory-events", groupId = "group1")
     public void handleInventoryEvents(Object event) {
+        System.out.println("inventory events");
         if (event instanceof InventoryUpdatedEvent) {
             InventoryUpdatedEvent updatedEvent = (InventoryUpdatedEvent) event;
             Order order = orderRepository.findById(updatedEvent.orderId()).orElseThrow();

@@ -22,6 +22,11 @@ public class InventoryService {
 
     @PostConstruct
     public void setupInitialInventory() {
+//        Inventory item = new Inventory();
+//        item.setItem("ProductA");
+//        item.setQuantity(10);
+//        inventoryRepository.save(item);
+//        System.out.println("Initial inventory seeded for ProductA.");
         if (inventoryRepository.count() == 0) {
             Inventory item = new Inventory();
             item.setItem("ProductA");
@@ -31,8 +36,9 @@ public class InventoryService {
         }
     }
 
-    @KafkaListener(topics = "payment-events", groupId = "inventory-group")
+    @KafkaListener(topics = "payment-events", groupId = "group1")
     public void handlePaymentProcessed(Object event) {
+        System.out.println("Inside Inventory");
         if (event instanceof PaymentProcessedEvent) {
             PaymentProcessedEvent processedEvent = (PaymentProcessedEvent) event;
             System.out.println("InventoryService received PaymentProcessedEvent for order " + processedEvent.orderId());
@@ -54,6 +60,8 @@ public class InventoryService {
                 System.out.println("Inventory update failed for order " + processedEvent.orderId() + ": " + e.getMessage());
                 kafkaTemplate.send("inventory-events", new InventoryUpdateFailedEvent(processedEvent.orderId()));
             }
+        }else {
+            System.out.println("Else block in Inventory");
         }
     }
 }

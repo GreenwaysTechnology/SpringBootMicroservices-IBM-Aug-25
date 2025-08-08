@@ -1,0 +1,7 @@
+CREATE TABLE Customer(
+id SERIAL PRIMARY KEY,
+custname VARCHAR(255),
+city VARCHAR(255),
+country VARCHAR(255));
+
+ALTER TABLE public.Customer REPLICA IDENTITY FULL;

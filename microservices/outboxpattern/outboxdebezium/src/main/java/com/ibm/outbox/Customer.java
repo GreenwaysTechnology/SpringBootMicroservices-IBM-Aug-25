@@ -10,11 +10,11 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "CustomerName")
+    @Column(name = "custname")
     private String name;
-    @Column(name = "City")
+    @Column(name = "city")
     private String city;
-    @Column(name = "Country")
+    @Column(name = "country")
     private String country;
 
     public Long getId() {

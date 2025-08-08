@@ -1,0 +1,208 @@
+.....................................................................................
+		Service Discovery and Registry with Load Balancing
+			Scalability and Load Balancing
+			   (High availability)
+.....................................................................................
+n Enterprise applications, many users may access in a second, like one thousand users per ms.
+
+if you have hosted your application on single server, server cant respond to all users on time.
+
+Thats why we need to scale our app.
+
+There two types scalability:
+
+1.With vertical scaling (“scaling up”), you're adding more compute power to your existing instances/nodes.
+
+2.In horizontal scaling (“scaling out”), you get the additional capacity in a system by adding more instances to your environment, sharing the processing and memory workload across multiple devices
+
+Micro services can be scaled horizontally - we can run the same microservices n-number of times, when we run apps n-numbers we need load balancer to select instance.
+
+
+Load Balancer:
+ One of the most prominent reasons of evolution from monolith to microservices  arch is horizontal scaling.
+
+It helps to improve performance incase of higher traffic for a particular service.
+
+We need to create multiple instances of the service in order to handle the large traffic of requests.
+
+Load balancing refers to efficiently distributing the incoming network traffic across a group of backend servers( multiple instances of the services).
+
+
+Types of load balancing:
+
+1.server-side loading balancing
+2.client-side load balancing.
+
+
+1.Server-side load balancer:
+  In server side load balancing, the instances of services are deployed on multiple servers and then a load balancer is put in front of them. It is generally a hardware load balancer.
+  
+  All requests are initally routed via server side load balancer to the application.
+
+2.Client side/software load balancer:
+ 
+  Software load balancer is front gate to the applications(microservice)
+  Software load balancer is embeded as part of service registry
+
+
+Client side load balancing:
+ Spring boot with Netflix , who offers load balancer called "Ribbon".
+
+Ribbon:
+->Client side load balancer
+->it offers fault tolerance..
+
+
+Implementation:
+Using Eurka Server:
+
+Same Configuration like above
+
+HelloService:
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+
+
+package com.hello;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class HelloserviceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HelloserviceApplication.class, args);
+	}
+
+}
+
+Eurka Instance :
+
+package com.hello;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class GreeterController {
+    @Value("${eureka.instance.instance-id}")
+    private String instanceId;
+
+    @GetMapping("/hello")
+    public String sayHello() {
+        System.out.println(instanceId);
+        return "Hello =>" + instanceId;
+    }
+}
+
+.............................................................................
+
+
+Loadbalancer COnfiguration:
+https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/loadbalancer.html
+
+
+............
+
+Caller:
+package com.resttemplate;
+
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
+
+    //https://docs.spring.io/spring-cloud-commons/reference/spring-cloud-commons/loadbalancer.html
+@Configuration
+public class SampleConfig {
+    @LoadBalanced
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+application.properties
+
+#server.port=8080
+server.port=8083
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+spring.application.name=hello-resttemplate-service
+eureka.client.instance.preferIpAddress = true
+eureka.instance.instance-id=${spring.application.name}:${spring.application.instance_id:${random.value}}
+${spring.application.instance_id:${random.value}}
+
+Main:
+package com.resttemplate;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class RestTemplateApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(RestTemplateApplication.class, args);
+    }
+
+
+}
+HelloController:
+package com.resttemplate;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+
+@RestController
+public class HelloController {
+
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private DiscoveryClient client;
+
+    @GetMapping("/greet")
+    public ResponseEntity<String> sayGreet() {
+        String url = "http://hello-service/hello";
+        String helloResponse = restTemplate.getForObject(url, String.class);
+        return ResponseEntity.status(200).body(helloResponse);
+    }
+}
+
+Testing:
+
+Run hello service one or more times:
+
+E:\session\SunLife\ServiceRegistryAndDiscovery\loadbalancing\helloservice> mvn spring-boot:run
+
+E:\session\SunLife\ServiceRegistryAndDiscovery\loadbalancing\helloservice> mvn spring-boot:run
+E:\session\SunLife\ServiceRegistryAndDiscovery\loadbalancing\helloservice> mvn spring-boot:run
+
+E:\session\SunLife\ServiceRegistryAndDiscovery\loadbalancing\helloservice> mvn spring-boot:run
+
+client Side:
+http://localhost:8083/greet
+
+Response:
+Hello =>hello-service:bd9e7966b51df422bf9e3205a52361b9
+
+Just refresh the screen , you can see instance ids are different , that means load balancer is working fine.

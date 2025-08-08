@@ -1,0 +1,108 @@
+....................................................................................
+			  Spring Cloud Config
+....................................................................................
+Reading Properties from local application via application.properties or application.yml file.
+
+@Value annotation is used inject properties into code.
+
+
+Spring Cloud Config provides server and client-side support for externalized configuration in a distributed system. With the Config Server you have a central place to manage external properties for applications across all environments. The concepts on both client and server map identically to the Spring Environment and PropertySource abstractions, so they fit very well with Spring applications, but can be used with any application running in any language
+
+Spring Cloud Config Server features:
+
+
+HTTP, resource-based API for external configuration (name-value pairs, or equivalent YAML content)
+
+Encrypt and decrypt property values (symmetric or asymmetric)
+
+Embeddable easily in a Spring Boot application using @EnableConfigServer
+
+
+Config Client features (for Spring applications):
+
+Bind to the Config Server and initialize Spring Environment with remote property sources
+
+Encrypt and decrypt property values (symmetric or asymmetric)
+
+
+Steps:
+
+1.Config Sources:
+  We need to decide config sources, suppos if it is git.
+
+create a git repository.
+called spring-cloudconfig
+
+push hello.properties into git repository.
+
+message=Hello,How are you
+
+
+2.Config server
+
+create spring boot app with the following dependencies
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-config-server</artifactId>
+		</dependency>
+
+
+application.properties
+
+server.port=8081
+#Basic Config Server Properties
+spring.cloud.config.server.git.uri=https://github.com/GreenwaysTechnology/spring-cloudconfig
+spring.application.name=configServer
+
+
+Main App:
+package com.dell.microservice.config;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.config.server.EnableConfigServer;
+
+@SpringBootApplication
+@EnableConfigServer
+public class MicroserviceConfigServerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(MicroserviceConfigServerApplication.class, args);
+	}
+
+}
+....................................
+
+Step 3: Config client:
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-bootstrap</artifactId>
+		</dependency>
+
+
+application.properties
+management.endpoints.web.exposure.include=*
+spring.application.name=hello
+spring.profiles.active=dev
+
+bootstrap.properites
+spring.cloud.config.uri=http://localhost:8081
+
+
+Note:
+ application.name and property file name must match
+
+ spring.application.name=hello  === hello.properites (inside git repository)
+
+bootstrap.properties file is necessary to connect with config server, bootstrap properties are used to read property initalization during container starup.
+
+

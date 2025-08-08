@@ -15,11 +15,11 @@ Service Commination's are done with two design patterns
    Kafka
    RabbitMQ
 
-Messigng loosly coupled, where as Rpi is tightly coupled
+Messaging loosely coupled, where as Rpi is tightly coupled
 
 Messaging async , where as rpi is sync
 
-Applications must have same protocal
+Applications must have same protocol
 
 Spring and Messaging:
   Spring-kafka 
@@ -132,10 +132,7 @@ public class HelloController {
 }
 
 .....................................................................................
-
-
-.....................................................................................
-			 RestClient- Modern Sync way of calling Rest api
+				 RestClient- Modern Sync way of calling Rest api
 ....................................................................................
 
 It is simple and alternate way to Rest Template.
@@ -361,9 +358,9 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
-	@Bean
+ @Bean
     JsonPlaceholderService jsonPlaceholderService() {
-		RestClient client = RestClient.create("https://jsonplaceholder.typicode.com");
+	   RestClient client = RestClient.create("https://jsonplaceholder.typicode.com");
 	    HttpServiceProxyFactory factory = HttpServiceProxyFactory
 				.builderFor(RestClientAdapter.create(client))
 				.build();
@@ -420,6 +417,208 @@ public class PostController {
     }
 
 }
+.......................................................................................................................................................................................................................................
+							.....................................................................................
+			Spring Cloud OpenFeign
 .....................................................................................
+What is OpenFeign:
+  Feign makes writing java http clients easier
+	This project provides OpenFeign integrations for Spring Boot apps through autoconfiguration and binding to the Spring Environment and other Spring programming model idioms.
 
+
+FeignClient:
+   It is old way of writing interface based implementation alternate to "restTemplate".
+
+RestClient === restTemplate
+RestClientInterface = FeignClient
+
+Depedency:
+	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+	</dependency>
+	<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-openfeign</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-loadbalancer</artifactId>
+		</dependency>
+
+
+Interface:
+package com.openfeign;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@FeignClient(value = "hello-service",url="http://localhost:8081")
+public interface HelloServiceFeignClient {
+    //api
+    @GetMapping("/hello")
+    ResponseEntity<String> hello();
+}
+
+EnableOpenFeign:
+package com.openfeign;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
+
+@SpringBootApplication
+@EnableFeignClients
+public class OpenfeignApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(OpenfeignApplication.class, args);
+	}
+
+}
+
+Controller:
+package com.openfeign;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class FeignController {
+
+    @Autowired
+    private HelloServiceFeignClient helloServiceFeignClient;
+
+    @GetMapping("/greet")
+    public ResponseEntity<String> hello(){
+        String helloResponse = helloServiceFeignClient.hello().getBody();
+        return ResponseEntity.status(200).body(helloResponse);
+    }
+}
+
+Testing:
+http://localhost:8082/greet
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+										WebClient
+.....................................................................................
+				WebClient
+....................................................................................
+
+Reactive style of calling rest api:
+
+1.NonBlocking
+2.Async
+3.EventDriven-stream supported..
+4.FluentApi style
+
+if you want to use webclient your project must be spring-webflux enabled
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.2.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.webclient</groupId>
+	<artifactId>restwebclient</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>restwebclient</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+Config:
+package com.webclient;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class WebClientConfig {
+
+    @Bean
+    public WebClient webClient(){
+        WebClient webClient = WebClient.builder()
+                .baseUrl("http://localhost:8081")
+                .build();
+        return  webClient;
+    }
+}
+
+Controller
+package com.webclient;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+@RestController
+public class WebClientController
+{
+     private final WebClient webClient;
+
+     @Autowired
+     public WebClientController(WebClient webClient){
+         this.webClient=webClient;
+     }
+    @GetMapping("/greet")
+    public Mono<String> sayGreet(){
+        return webClient.get().uri("/hello").retrieve().bodyToMono(String.class);
+    }
+}
+package com.webclient;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class RestwebclientApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(RestwebclientApplication.class, args);
+	}
+
+}
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 

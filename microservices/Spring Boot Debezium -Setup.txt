@@ -1,0 +1,305 @@
+											Spring Boot Debezium -Setup
+
+
+Create Spring Boot Project:
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.4</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ibm.outbox</groupId>
+	<artifactId>outboxdebezium</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>outboxdebezium</name>
+	<description>Demo project for Spring Boot</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+****************************************************************************************************************************************************
+Add docker-compose file
+
+outboxdebizum-root Project
+	|
+	docker-compose.yaml
+version: "3.7"
+services:
+  postgres:
+    image: debezium/postgres:13
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=subu
+      - POSTGRES_PASSWORD=subu
+      - POSTGRES_DB=debezium_master
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@javapuzzle.com
+      - PGADMIN_DEFAULT_PASSWORD=admin1234
+    ports:
+      - '5051:80'
+    restart: always
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.3
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-enterprise-kafka:5.5.3
+    depends_on: [zookeeper]
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - 9092:9092
+
+  debezium:
+    image: debezium/connect:1.4
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: connect_configs
+      OFFSET_STORAGE_TOPIC: connect_offsets
+      KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+      VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+    depends_on: [kafka]
+    ports:
+      - 8083:8083
+
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.3
+    environment:
+      - SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181
+      - SCHEMA_REGISTRY_HOST_NAME=schema-registry
+      - SCHEMA_REGISTRY_LISTENERS=http://schema-registry:8081,http://localhost:8081
+    ports:
+      - 8081:8081
+    depends_on: [zookeeper, kafka]
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Debizum Postgress Connector Configuration:
+
+ProjectRoot
+	|
+debizum.json
+{
+  "name": "debezium_master-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "plugin.name": "pgoutput",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "subu",
+    "database.password": "subu",
+    "database.dbname": "debezium_master",
+    "database.server.name": "postgres",
+    "table.include.list": "public.customer,public.employee"
+  }
+}
+........................................................................................................................................................................................................................................
+											Starting 
+
+start all containers
+ Directory of G:\IBM\2025\Aug\SpringBootAndMicroservices\microservices\outboxpattern\outboxdebezium
+
+08/07/2025  07:02 PM    <DIR>          .
+08/07/2025  06:34 PM    <DIR>          ..
+08/07/2025  06:33 PM                38 .gitattributes
+08/07/2025  06:33 PM               394 .gitignore
+08/07/2025  06:36 PM    <DIR>          .idea
+08/07/2025  06:33 PM    <DIR>          .mvn
+08/07/2025  06:56 PM               451 debezium.json
+08/07/2025  06:43 PM             1,750 docker-compose.yaml
+08/07/2025  06:33 PM             1,435 HELP.md
+08/07/2025  06:33 PM            10,665 mvnw
+08/07/2025  06:33 PM             6,912 mvnw.cmd
+08/07/2025  06:33 PM             2,213 pom.xml
+08/07/2025  06:33 PM    <DIR>          src
+08/07/2025  07:02 PM               330 tablecreatonscript
+               9 File(s)         24,188 bytes
+               5 Dir(s)  265,488,949,248 bytes free
+
+G:\IBM\2025\Aug\SpringBootAndMicroservices\microservices\outboxpattern\outboxdebezium> docker-compose up
+
+
+After starting all containers
+
+Configure Database First :
+
+ Open PgAdmin Terminal
+
+http://localhost:5051/
+
+email: pgadmin4@javapuzzle.com
+password:admin1234
+
+Register---->Server-->MyServer(name of the server)
+				  name:postgres - this is name of the container from the docker-compose file
+				 maintaincedatabase:debezium_master - from docker-compose file
+				username: subu
+				password: subu  -->both from docker-compose file underpostgres section
+   save
+
+.................................................................
+
+Open query tool under tables sections
+
+create table :
+CREATE TABLE Customer(
+CustomerID SERIAL PRIMARY KEY,
+CustomerName VARCHAR(255),
+City VARCHAR(255),
+Country VARCHAR(255)
+);
+run this command ,
+
+Alter table with option
+ALTER TABLE public.Customer REPLICA IDENTITY FULL;
+
+INSERT INTO CUSTOMER(CustomerName,City,Country) VALUES(
+'Murugan','Coimbatore','India'
+)
+
+&&&&&&&&&&&&&&&
+Connector configurations:
+
+Open Post Man:
+GET localhost:8083/connectors
+
+Response:
+[]
+
+POST localhost:8083/connectors
+{
+    "name": "debezium_master-connector",
+    "config": {
+        "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+        "plugin.name": "pgoutput",
+        "database.hostname": "postgres",
+        "database.port": "5432",
+        "database.user": "subu",
+        "database.password": "subu",
+        "database.dbname": "debezium_master",
+        "database.server.name": "postgres",
+        "table.include.list": "public.customer,public.employee"
+    }
+}
+
+GET localhost:8083/connectors
+
+Response:
+[
+    "debezium_master-connector"
+]
+
+INSERT INTO CUSTOMER(CustomerName,City,Country) VALUES(
+'Murugan','Coimbatore','India'
+)
+
+Open docker console and watch , whenever you insert row into customer table, you can see the event is triggered.
+
+>docker ps
+CONTAINER ID   IMAGE                                    COMMAND                  CREATED          STATUS          PORTS                                                  NAMES
+e9958fe54e60   confluentinc/cp-schema-registry:5.5.3    "/etc/confluent/dock…"   14 minutes ago   Up 14 minutes   0.0.0.0:8081->8081/tcp                                 outboxdebezium-schema-registry-1
+7a89ebedf943   debezium/connect:1.4                     "/docker-entrypoint.…"   14 minutes ago   Up 14 minutes   8778/tcp, 9092/tcp, 0.0.0.0:8083->8083/tcp, 9779/tcp   outboxdebezium-debezium-1
+0053a79d1a18   confluentinc/cp-enterprise-kafka:5.5.3   "/etc/confluent/dock…"   14 minutes ago   Up 14 minutes   0.0.0.0:9092->9092/tcp                                 outboxdebezium-kafka-1
+9c9cd74ac435   debezium/postgres:13                     "docker-entrypoint.s…"   14 minutes ago   Up 14 minutes   0.0.0.0:5432->5432/tcp                                 outboxdebezium-postgres-1
+a08834d720b1   dpage/pgadmin4                           "/entrypoint.sh"         14 minutes ago   Up 14 minutes   443/tcp, 0.0.0.0:5051->80/tcp                          outboxdebezium-pgadmin-1
+781d085fd7df   confluentinc/cp-zookeeper:5.5.3          "/etc/confluent/dock…"   14 minutes ago   Up 14 minutes   2181/tcp, 2888/tcp, 3888/tcp                           outboxdebezium-zookeeper-1
+
+>docker exec -it 0053a79d1a18 /bin/bash
+root@0053a79d1a18:/# kafka-topics --list --bootstrap-server localhost:9092
+__confluent.support.metrics
+__consumer_offsets
+_schemas
+connect-status
+connect_configs
+connect_offsets
+postgres.public.customer
+
+root@0053a79d1a18:/#  kafka-console-consumer --bootstrap-server localhost:9092 --topic postgres.public.customer --from-beginning
+SubramanianCoimbatore
+India1.4.2.Finalpostgresqlpostgres   ːf
+falsedebezium_master
+                    publiccustomer    c   ːf
+MuruganCoimbatore
+India1.4.2.Finalpostgresqlpostgres   ːf
+falsedebezium_master
+                    publiccustomer    c   ːf

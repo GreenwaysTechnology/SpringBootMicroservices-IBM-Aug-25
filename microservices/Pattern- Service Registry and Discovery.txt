@@ -1,0 +1,439 @@
+									  Service Registry and Discovery
+								 	Micro service Internal Communication
+											 Challenges
+.........................................................................................................................................................................................................................................
+
+Registry:
+ It is a software which stores all microservices service information 
+
+Discovery:
+  It is locating services from the registry server.
+
+Service Registry and Discovery is used only in "Rest services"...
+
+1.Netflix Eureka
+   Eureka is a RESTful (Representational State Transfer) service that is primarily used in the AWS cloud for the purpose of discovery, load balancing and failover of middle-tier servers. It plays a critical role in Netflix mid-tier infra.
+
+2.Hashicorp "Consul"
+   It is most populare Service registry,distributed configuration server..
+
+3.ETCD 
+   Distributed reliable key-value store for the most critical data of a distributed system
+
+
+Spring cloud provides api to register and deregister with Register servers with annotations and dependencies...
+
+Service Registry and discovery works well with all "REST Communitations" - restTemplate,RestClient,RestClientInterface,feign Client,WebClient...
+
+	&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+								    Client Side Discovery Implementations
+
+
+Registry:
+ It is a software which stores all microservices service information 
+
+Discovery:
+  It is locating services from the registry server.
+
+Service Registry and Discovery is used only in "Rest services"...
+
+1.Netflix Eureka
+   Eureka is a RESTful (Representational State Transfer) service that is primarily used in the AWS cloud for the purpose of discovery, load balancing and failover of middle-tier servers. It plays a critical role in Netflix mid-tier infra.
+
+2.Hashicorp "Consul"
+   It is most populare Service registry,distributed configuration server..
+
+3.ETCD 
+   Distributed reliable key-value store for the most critical data of a distributed system
+
+
+Spring cloud provides api to register and deregister with Register servers with annotations and dependencies...
+
+Service Registry and discovery works well with all "REST Communitations" - restTemplate,RestClient,RestClientInterface,feign Client,WebClient...
+
+Programming Steps:
+
+1.Registry Server  eg : Consul,etcd,Apache zooKeeper,Euraka
+2.SpringBoot RegistryServerApp - Connecting to Registry servers - Optional in few Envs
+3.Your Caller App
+4.Your Callee App
+
+Service Registry with Netflix Eureka:
+
+Registry :
+  Eureka server is available as a separate server, we can use spring boot application to act Eureka Server.
+  Spring Boot Offers Inmemory Eureka Server
+
+pom.xml
+	<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+		</dependency>
+
+
+
+Main:
+ in order to convert spring boot app as "Eurka server" -@EnableEurekaServer
+
+package com.registry.server;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+
+@SpringBootApplication
+@EnableEurekaServer
+public class NetflixeurekaserverApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(NetflixeurekaserverApplication.class, args);
+	}
+
+}
+
+configuration: application.properties
+server.port=8761
+eureka.client.register-with-eureka=false
+eureka.client.fetch-registry=false
+logging.level.com.netflix.eureka=OFF
+logging.level.com.netflix.discovery=OFF
+
+Eurka server is running at port 8761.
+....................................................................................
+
+Callee: hello-service Spring boot app
+
+application.properties
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+spring.application.name=hello-service
+eureka.client.instance.preferIpAddress = true
+server.port=${PORT:0}
+eureka.instance.instance-id=${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+
+
+
+here application name is used by eurka server to register and identify other services.
+
+eureka.client.serviceUrl.defaultZone-  This service to be connected with service registry.
+eureka.client.instance.preferIpAddress=true - do you want ip address
+server.port=${PORT:0} - Dynamic port
+
+eureka.instance.instance-id -  used by registry server to identify services uniquly.
+
+
+pom.xml
+	<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+
+
+Main:
+package com.hello;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class HelloserviceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HelloserviceApplication.class, args);
+	}
+
+}
+
+Run the Application:
+
+1.You can watch Eurka registry dasboard and have look service instance been registered
+Now other services can look this service.
+
+...................
+
+Caller Server:
+..............
+
+Caller can use any rest client apis - restTemplate,RestClient,WebClient,FeignClient.
+
+RestTemplate:
+  calling service via registry with Rest Template.
+
+pom.xml
+   <dependency>
+
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+
+application.properties
+
+#server.port=8080
+server.port=8083
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka/
+spring.application.name=hello-resttemplate-service
+eureka.client.instance.preferIpAddress = true
+eureka.instance.instance-id=${spring.application.name}:${spring.application.instance_id:${random.value}}
+
+Main:
+package com.resttemplate;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
+
+@SpringBootApplication
+@EnableDiscoveryClient
+public class RestTemplateApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(RestTemplateApplication.class, args);
+	}
+	@Bean
+	RestTemplate restTemplate() {
+		return new RestTemplate();
+	}
+}
+
+How to communicate "helloService" via registry Server?
+....
+
+Controller :
+package com.resttemplate;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+
+@RestController
+public class HelloController {
+
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private DiscoveryClient client;
+
+    @GetMapping("/greet")
+    public ResponseEntity<String> sayGreet() {
+        URI uri = client.getInstances("hello-service").stream().map(si -> si.getUri()).findFirst()
+                .map(s -> s.resolve("/hello")).get();
+        System.out.println(uri.getHost() + uri.getPort());
+        ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+        return response;
+    }
+}
+...................................................................................
+			Rest Client and Service Registry
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Note:
+ No changes in the basic configuration:
+
+HelloController:
+package dev.mycom.restclient.post;
+
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+import java.util.List;
+
+@RestController
+public class HelloController {
+
+    private final RestClient restClient;
+    @Autowired
+    private DiscoveryClient client;
+
+    public HelloController() {
+        restClient = RestClient.builder()
+                .baseUrl("")
+                .build();
+    }
+
+    @GetMapping("/greet")
+    public String sayGreet() {
+        URI uri = client.getInstances("hello-service").stream().map(si -> si.getUri()).findFirst()
+                .map(s -> s.resolve("/hello")).get();
+        System.out.println(uri.getHost() + uri.getPort());
+        return restClient.get()
+                .uri(uri)
+                .retrieve()
+                .body(String.class);
+    }
+}
+.....................................................................................
+			 OpenFegin and Service Registry Configuration
+
+.....................................................................................
+
+Basic Configuration remains Same:
+
+Interface Configuration:
+package com.openfeign;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@FeignClient(value = "hello-service")
+public interface HelloServiceFeignClient {
+    //api
+    @GetMapping("/hello")
+    ResponseEntity<String> hello();
+}
+.....................................................................................
+			 Web Client - Service Registry and Discovery
+.....................................................................................
+Note:
+ All basic configuration:
+
+Controller:
+package com.webclient;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.net.URI;
+
+@RestController
+public class WebClientController {
+    private final WebClient webClient;
+    @Autowired
+    private DiscoveryClient client;
+
+    @Autowired
+    public WebClientController(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    @GetMapping("/greet")
+    public Mono<String> sayGreet() {
+        URI uri = client.getInstances("hello-service").stream().map(si -> si.getUri()).findFirst().map(s -> s.resolve("/hello")).get();
+        System.out.println(uri.getHost() + uri.getPort());
+        return webClient.get().uri(uri).retrieve().bodyToMono(String.class);
+    }
+}
+.....................................................................................
+			 Service Registry with Consul
+.....................................................................................
+
+Steps:
+1.You need to run consul server.
+  You can setup consul server with docker or standalone...
+
+1.docker run --rm --name consul -p 8500:8500 -p 8501:8501 consul:1.7 agent -dev -ui -client=0.0.0.0 -bind=0.0.0.0 --https-port=8501
+
+
+Hello-Service:
+pom.xml
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-consul-discovery</artifactId>
+			<version>4.1.0</version>
+		</dependency>
+
+
+application.properties
+spring.application.name=hello-service
+server.port=${PORT:0}
+
+application.yml
+spring:
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+
+
+Caller: restclient
+
+application.properties
+#server.port=8080
+server.port=8083
+spring.application.name=rest-client-service
+
+application.yml
+spring:
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+
+
+Controller:
+package dev.mycom.restclient.post;
+
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
+
+import java.net.URI;
+import java.util.List;
+
+@RestController
+public class HelloController {
+
+    @LoadBalanced
+    private final RestClient restClient;
+    @Autowired
+    private DiscoveryClient client;
+
+    public HelloController() {
+        restClient = RestClient.builder()
+                .baseUrl("")
+                .build();
+    }
+
+    @GetMapping("/greet")
+    public String sayGreet() {
+        URI uri = client.getInstances("hello-service").stream().map(si -> si.getUri()).findFirst()
+                .map(s -> s.resolve("/hello")).get();
+        System.out.println(uri.getHost() + uri.getPort());
+        return restClient.get()
+                .uri(uri)
+                .retrieve()
+                .body(String.class);
+    }
+}
+
+Types of Service Registry:
+
+client side discovery - Only we have seen
+server side discovery - Using external routers/gateways....
+	

@@ -1,0 +1,13 @@
+CREATE TABLE Customer(
+CustomerID SERIAL PRIMARY KEY,
+CustomerName VARCHAR(255),
+City VARCHAR(255),
+Country VARCHAR(255)
+);
+After Creating table using query tool in pgAdmin
+
+ALTER TABLE public.Customer REPLICA IDENTITY FULL;
+
+INSERT INTO CUSTOMER(CustomerName,City,Country) VALUES(
+'Subramanian','Coimbatore','India'
+)
